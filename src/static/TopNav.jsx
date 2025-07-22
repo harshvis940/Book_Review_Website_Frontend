@@ -16,7 +16,7 @@ function TopNav() {
   };
 
   return (
-    <nav className="bg-zinc-100">
+    <nav className="bg-zinc-100 shadow-md">
       <div className="max-w-7xl px-6">
         <ul className="flex justify-start gap-8 py-4 px-10">
           {navItems.map((item) => (

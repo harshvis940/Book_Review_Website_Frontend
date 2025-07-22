@@ -11,8 +11,8 @@ function Login() {
   };
 
   return (
-    <div className="bg-secondary min-h-screen flex justify-center items-center flex-col">
-      <div className="bg-heading1 h-170 w-170 shadow-md rounded-md">
+    <div className="bg-zinc-100 min-h-screen flex justify-center items-center flex-col">
+      <div className="bg-white h-170 w-170 shadow-md rounded-md">
         <h1 className="text-3xl text-center mt-10">Login</h1>
         <form className="flex flex-col  p-7">
           <label htmlFor="" className="mb-1">
@@ -46,7 +46,7 @@ function Login() {
           <button
             onClick={onSubmit}
             type="submit"
-            className="bg-primary mt-5 p-2 rounded-md"
+            className="bg-blue-400 mt-5 p-2 rounded-md"
           >
             Login
           </button>
