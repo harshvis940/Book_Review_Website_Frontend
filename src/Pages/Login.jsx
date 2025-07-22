@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const [showPassword, setShowPassword] = useState(false);
+  const handleCheck = () => {
+    setShowPassword((prev) => !prev);
+    console.log(toString(showPassword));
+  };
   const navigate = useNavigate();
   const onSubmit = (e) => {
     e.preventDefault();
@@ -30,7 +35,9 @@ function Login() {
             Password
           </label>
           <TextField
-            slotProps={{ htmlInput: { type: "password" } }}
+            slotProps={{
+              htmlInput: { type: showPassword ? "text" : "password" },
+            }}
             id="outlined-basic"
             label="Password"
             variant="outlined"
@@ -38,7 +45,7 @@ function Login() {
 
           <div className="w-fit justify-self-right mt-2">
             <label htmlFor="" className="">
-              <input type="checkbox" className="mr-2" />
+              <input type="checkbox" onClick={handleCheck} className="mr-2" />
               Show Password
             </label>
           </div>
