@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
+
+@theme {
+  --color-primary: #c33c54;
+  --color-secondary: #254E7O;
+  --color-heading1: #37718e;
+  --color-heading2: #8ee3ef;
+  --color-heading3: #aef3e7;
+}
