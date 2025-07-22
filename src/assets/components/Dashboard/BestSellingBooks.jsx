@@ -10,7 +10,7 @@ function BestSellingBooks() {
         <h4>View all {">"}</h4>
       </div>
 
-      <div className="mt-5 bg-white flex flex-row gap-5 flex-wrap">
+      <div className="mt-5 bg-white flex flex-row gap-5 flex-wrap justify-between">
         {data.map((val) => (
           <div className="h-fit w-100 bg-white border-1 border-gray-400 rounded-lg shadow-xs overflow-hidden">
             <img
