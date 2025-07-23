@@ -2,17 +2,60 @@ import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleCheck = () => {
     setShowPassword((prev) => !prev);
     console.log(toString(showPassword));
+    console.log(email);
   };
-  const navigate = useNavigate();
-  const onSubmit = (e) => {
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    navigate("/dashboard");
+
+    // Frontend validations
+    if (!email || !password) {
+      toast.error("All fields are required.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      toast.error("Invalid email format.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const loginData = { email, password };
+      const res = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loginData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      toast.success("Login successful!");
+      setTimeout(() => navigate("/dashboard"), 1500); // Navigate after toast
+    } catch (err) {
+      toast.error(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,6 +72,8 @@ function Login() {
             label="Email"
             variant="outlined"
             slotProps={{ htmlInput: { type: "email" } }}
+            value={email}
+            onChange={(val) => setEmail(val.target.value)}
           />
 
           <label htmlFor="" className="mb-1 mt-5">
@@ -41,6 +86,8 @@ function Login() {
             id="outlined-basic"
             label="Password"
             variant="outlined"
+            value={password}
+            onChange={(val) => setPassword(val.target.value)}
           />
 
           <div className="w-fit justify-self-right mt-2">
@@ -55,7 +102,7 @@ function Login() {
             type="submit"
             className="bg-blue-400 mt-5 p-2 rounded-md"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -66,6 +113,7 @@ function Login() {
           </Link>
         </p>
       </div>
+      <ToastContainer />
     </div>
   );
 }

@@ -116,7 +116,7 @@ function BookDetail() {
         </div>
 
         {/* Right: Book Details (60%) - Scrollable */}
-        <div className="py-5 flex flex-col h-screen overflow-y-auto custom-scrollbar">
+        <div className="py-10 flex flex-col h-screen overflow-y-auto custom-scrollbar">
           <h1 className="text-4xl font-bold mb-6 px-5">Book Title</h1>
           <p className="text-xl mb-2 px-5">Author: Harsh</p>
           <p className="text-xl mb-2 px-5">Genre: Self-help</p>

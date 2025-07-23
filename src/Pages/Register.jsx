@@ -5,18 +5,19 @@ import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import FormControl from "@mui/material/FormControl";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Register() {
-  const navigate = useNavigate();
-
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     role: "USER",
   });
-
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleShowPassword = () => {
     setShowPassword((prev) => !prev);
@@ -30,16 +31,57 @@ function Register() {
     }));
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault(); // prevent page reload
+  const validateForm = () => {
+    const { username, email, password } = formData;
 
-    console.log("Registering:", formData);
-    // Send POST request to backend if needed
-    // const res = await fetch('http://127.0.0.1:8000/api/register', { ... });
+    if (!username.trim() || !email.trim() || !password.trim()) {
+      toast.error("All fields are required!");
+      return false;
+    }
 
-    navigate("/dashboard");
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Please enter a valid email address!");
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long!");
+      return false;
+    }
+
+    return true;
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:8080/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Registration successful!");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      } else {
+        toast.error(data.message || "Registration failed!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="bg-zinc-100 min-h-screen flex justify-center items-center flex-col">
       <div className="bg-white h-170 w-170 shadow-md rounded-md">
@@ -118,7 +160,7 @@ function Register() {
             className="bg-blue-400 mt-5 p-2 rounded-md text-white"
             type="submit"
           >
-            Register
+            {loading ? "Registering" : "Register"}
           </button>
         </form>
 
@@ -130,6 +172,7 @@ function Register() {
           </Link>
         </p>
       </div>
+      <ToastContainer />
     </div>
   );
 }
