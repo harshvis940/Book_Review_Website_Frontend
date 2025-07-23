@@ -6,6 +6,7 @@ import Recommended from "../assets/components/Dashboard/Recommended";
 import PopularBooks from "../assets/components/Dashboard/PopularBooks";
 import BestSellingBooks from "../assets/components/Dashboard/BestSellingBooks";
 import NewBooks from "../assets/components/Dashboard/NewBooks";
+import { useEffect } from "react";
 
 function Dashboard() {
   return (
