@@ -48,7 +48,7 @@ function Login() {
       if (!res.ok) {
         throw new Error(data.message || "Login failed");
       }
-
+      localStorage.setItem("token", data.data.token);
       toast.success("Login successful!");
       setTimeout(() => navigate("/dashboard"), 1500); // Navigate after toast
     } catch (err) {
