@@ -4,6 +4,7 @@ import Dashboard from "./Pages/Dashboard";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import ProfilePage from "./Pages/ProfilePage";
+import BookDetail from "./assets/components/Dashboard/BookDetail";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/bookDetail" element={<BookDetail />} />
       </Routes>
     </BrowserRouter>
   );

@@ -2,12 +2,19 @@ import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
 function Recommended() {
   const images = [
     "https://m.media-amazon.com/images/I/81BE7eeKzAL._UF1000,1000_QL80_.jpg",
     "https://m.media-amazon.com/images/I/610mObHZ-JL.jpg",
     "https://www.jaicobooks.com/wp-content/uploads/2022/12/j-2775-the-power-of-your-subconscious-mind-joseph-murphy.jpg",
   ];
+
+  const navigate = useNavigate();
+
+  const handleBookClick = (img) => {
+    navigate("/bookDetail", { state: { img } });
+  };
 
   return (
     <div className="bg-red-200 mx-20 my-5 h-100 overflow-hidden rounded-lg">
@@ -25,7 +32,10 @@ function Recommended() {
         {images.map((img, index) => (
           <SwiperSlide key={index}>
             {/* <h3 className="text-lg fixed ml-10 mt-5">Recommended for you</h3> */}
-            <div className="flex justify-center rounded-md overflow-hidden mt-10">
+            <div
+              onClick={() => handleBookClick(img)}
+              className="flex justify-center rounded-md overflow-hidden mt-10"
+            >
               <img
                 src={img}
                 alt={`Slide ${index}`}
