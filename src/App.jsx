@@ -5,6 +5,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import ProfilePage from "./Pages/ProfilePage";
 import BookDetail from "./assets/components/Dashboard/BookDetail";
+import ProtectedRoutes from "./assets/components/Authorization/ProtectedRoutes";
 
 function App() {
   return (
@@ -12,7 +13,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoutes>
+              <Dashboard />
+            </ProtectedRoutes>
+          }
+        />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/bookDetail" element={<BookDetail />} />
       </Routes>
