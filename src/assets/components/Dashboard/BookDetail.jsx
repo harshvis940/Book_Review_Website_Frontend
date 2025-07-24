@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import FormLabel from "@mui/material/FormLabel";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -6,30 +6,65 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import Snackbar from "@mui/material/Snackbar";
+import { getImageSrc } from "../../../static/DefaultExports";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 
 function BookDetail() {
   const location = useLocation();
   const book = location.state?.book;
+  const [isInReadingList, setIsInReadingList] = useState(false);
   console.log(book);
 
-  const getImageSrc = (coverImageUrl) => {
-    if (!coverImageUrl) {
-      return "https://m.media-amazon.com/images/I/81BE7eeKzAL._UF1000,1000_QL80_.jpg";
+  const handleAddToReadingList = () => {
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+      alert("user not prese");
+      // return;
     }
 
-    if (
-      coverImageUrl.startsWith("http://") ||
-      coverImageUrl.startsWith("https://")
-    ) {
-      return coverImageUrl;
-    }
+    const readingListKey = `readingList_${userId}`;
+    const existingList = JSON.parse(
+      localStorage.getItem(readingListKey) || "[]"
+    );
 
-    if (coverImageUrl.startsWith("data:image")) {
-      return coverImageUrl;
+    if (isInReadingList) {
+      // Remove from reading list
+      const updatedList = existingList.filter((item) => item.id !== book.id);
+      localStorage.setItem(readingListKey, JSON.stringify(updatedList));
+      setIsInReadingList(false);
+      setSnackbarMessage("Removed from reading list");
+      setSnackbarSeverity("info");
+    } else {
+      // Add to reading list
+      const bookToAdd = {
+        id: book.id,
+        title: book.title,
+        authors: book.authors,
+        coverImageURL: book.coverImageURL,
+        genres: book.genres,
+        addedAt: new Date().toISOString(),
+      };
+      existingList.push(bookToAdd);
+      localStorage.setItem(readingListKey, JSON.stringify(existingList));
+      setIsInReadingList(true);
+      setSnackbarMessage("Added to reading list!");
+      setSnackbarSeverity("success");
     }
-
-    return `data:image/jpeg;base64,${coverImageUrl}`;
   };
+
+  useEffect(() => {
+    // Check if book is already in reading list
+    const userId = localStorage.getItem("userId");
+    if (userId && book?.id) {
+      const readingList = JSON.parse(
+        localStorage.getItem(`readingList_${userId}`) || "[]"
+      );
+      setIsInReadingList(readingList.some((item) => item.id === book.id));
+    }
+  }, [book]);
 
   const review = [
     {
@@ -122,6 +157,15 @@ function BookDetail() {
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background:rgb(103, 103, 103);
           }
+
+          .reading-list-btn {
+            transition: all 0.3s ease;
+          }
+
+          .reading-list-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          }
         `}
       </style>
 
@@ -129,7 +173,7 @@ function BookDetail() {
         {/* Left: Book Image (40%) - Fixed */}
         <div className="flex bg-white p-10 h-screen sticky top-0">
           <img
-            src={getImageSrc(book.coverImageURL)}
+            src={getImageSrc(book?.coverImageURL)}
             alt="Book"
             className="w-full object-contain"
           />
@@ -162,6 +206,28 @@ function BookDetail() {
           <div className="w-150 mt-5 flex flex-row gap-5 px-5">
             <Button variant="contained">Buy Now</Button>
             <Button variant="outlined">Add to cart</Button>
+            <Button
+              variant="outlined"
+              startIcon={
+                isInReadingList ? <BookmarkIcon /> : <BookmarkBorderIcon />
+              }
+              onClick={handleAddToReadingList}
+              className="reading-list-btn"
+              sx={{
+                borderColor: isInReadingList
+                  ? "#1976d2"
+                  : "rgba(0, 0, 0, 0.23)",
+                color: isInReadingList ? "#1976d2" : "rgba(0, 0, 0, 0.87)",
+                "&:hover": {
+                  borderColor: "#1976d2",
+                  backgroundColor: isInReadingList
+                    ? "rgba(25, 118, 210, 0.08)"
+                    : "transparent",
+                },
+              }}
+            >
+              {isInReadingList ? "In Reading List" : "Add to Reading List"}
+            </Button>
           </div>
 
           <p className="mt-10 text-xl px-5">Book summary</p>

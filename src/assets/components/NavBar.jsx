@@ -20,18 +20,18 @@ function NavBar({ btnText, admin }) {
   };
   return (
     <>
-      <div className="bg-zinc-100 shadow:md flex flex-row justify-evenly h-20 justify-items-stretch bg-white">
+      <div className="bg-zinc-100 shadow:md flex flex-row justify-between h-20 justify-items-stretch bg-white">
         <div className="w-100 py-7 px-20 items-center">
           <h1 className="text-xl justify-self-start">Book Store</h1>
         </div>
-
+        {/* 
         <div className="w-full flex items-center">
           <input
             className="w-full h-10 border-1 rounded-lg px-2"
             type="search"
             placeholder="Search for books"
           />
-        </div>
+        </div> */}
 
         <div className="w-full flex flex-row justify-center items-center gap-5">
           <Button onClick={handleAdminClick} variant="outlined">

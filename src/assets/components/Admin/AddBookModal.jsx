@@ -6,13 +6,15 @@ import MenuItem from "@mui/material/MenuItem";
 import React, { useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 
-function AddBookModal({ onClose, genres }) {
+function AddBookModal({ onClose, genres, authors }) {
   const fileRef = useRef(null);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedAuhors, setSelectedAuthors] = useState([]);
+  console.log(authors);
 
   const [formData, setformData] = useState({
     title: "",
@@ -73,6 +75,7 @@ function AddBookModal({ onClose, genres }) {
     bookData.append("publication", formData.publication);
     bookData.append("coverImage", image);
     selectedGenres.forEach((id) => bookData.append("genres", id));
+    selectedAuhors.forEach((id) => bookData.append("authors", id));
 
     console.log(image);
 
@@ -182,16 +185,26 @@ function AddBookModal({ onClose, genres }) {
                 onChange={handleInputChange}
                 required
               />
-              <TextField
+              <InputLabel id="author-label">Authors</InputLabel>
+              <Select
+                labelId="author-label"
                 id="author"
-                name="author"
-                label="Author"
-                variant="outlined"
-                fullWidth
-                value={formData.author}
-                onChange={handleInputChange}
-                required
-              />
+                multiple
+                value={selectedAuhors}
+                onChange={(e) => setSelectedAuthors(e.target.value)}
+                renderValue={(selected) =>
+                  genres
+                    .filter((g) => selected.includes(g.id))
+                    .map((g) => g.name)
+                    .join(", ")
+                }
+              >
+                {authors.map((genre) => (
+                  <MenuItem key={genre.id} value={genre.id}>
+                    {genre.name}
+                  </MenuItem>
+                ))}
+              </Select>
 
               <InputLabel id="genre-label">Genres</InputLabel>
               <Select

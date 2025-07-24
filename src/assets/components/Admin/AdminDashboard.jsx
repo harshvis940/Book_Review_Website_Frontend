@@ -4,13 +4,16 @@ import BookCard from "./BookCard";
 import AddBookModal from "./AddBookModal";
 import AddGenreModal from "../Modals/AddGenreModal";
 import { API_BASE_URL } from "../../../static/DefaultExports";
+import AddAuthorModal from "../Modals/AddAuthorModal";
 
 function AdminDashboard() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
   const [isAddGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  const [isAddAuthorModalOpen, setIsAddAuthorModalOpen] = useState(false);
   const [genre, setGenre] = useState([]);
+  const [authors, setAuthors] = useState([]);
 
   const data = [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -64,8 +67,33 @@ function AdminDashboard() {
     }
   };
 
+  const fetchAllAuthors = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/author/getAll`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Authors: ", data.data);
+        setAuthors(data.data);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllGenre();
+    fetchAllAuthors();
   }, []);
 
   const handleAddBook = async () => {
@@ -89,12 +117,21 @@ function AdminDashboard() {
             Add New Book
           </p>
 
-          <p
-            className="mx-15 mt-3 bg-heading3 w-fit px-5 py-3 rounded-lg hover:cursor-pointer"
-            onClick={() => setIsGenreModalOpen((prev) => !prev)}
-          >
-            Add Genre
-          </p>
+          <div className="flex justify-between">
+            <p
+              className="mx-15 mt-3 bg-heading3 w-fit px-5 py-3 rounded-lg hover:cursor-pointer"
+              onClick={() => setIsGenreModalOpen((prev) => !prev)}
+            >
+              Add Genre
+            </p>
+            <p
+              className="mx-15 mt-3 bg-heading3 w-fit px-5 py-3 rounded-lg hover:cursor-pointer"
+              onClick={() => setIsAddAuthorModalOpen((prev) => !prev)}
+            >
+              Add Author
+            </p>
+          </div>
+
           <div className="flex flex-wrap gap-5 justify-center py-10">
             {data.map((val, key) => (
               <BookCard index={key} />
@@ -108,12 +145,20 @@ function AdminDashboard() {
             setIsAddBookModalOpen((prev) => !prev);
           }}
           genres={genre}
+          authors={authors}
         />
       )}
       {isAddGenreModalOpen && (
         <AddGenreModal
           onClose={() => setIsGenreModalOpen((prev) => !prev)}
           refreshGenres={fetchAllGenre}
+        />
+      )}
+
+      {isAddAuthorModalOpen && (
+        <AddAuthorModal
+          onClose={() => setIsAddAuthorModalOpen((prev) => !prev)}
+          refreshAuthors={fetchAllAuthors}
         />
       )}
     </>
