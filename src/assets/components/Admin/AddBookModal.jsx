@@ -1,21 +1,24 @@
 import Button from "@mui/material/Button";
+import InputLabel from "@mui/material/InputLabel";
 import TextField from "@mui/material/TextField";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import React, { useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 
-function AddBookModal({ onClose }) {
+function AddBookModal({ onClose, genres }) {
   const fileRef = useRef(null);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedGenres, setSelectedGenres] = useState([]);
 
   const [formData, setformData] = useState({
     title: "",
     author: "",
     img: "",
     isbn: "",
-    genre: "",
     publication: "",
     summary: "",
   });
@@ -32,13 +35,11 @@ function AddBookModal({ onClose }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // ✅ Validate file type
     if (!file.type.startsWith("image/")) {
       setError("Only image files are allowed.");
       return;
     }
 
-    // ✅ Validate size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Max file size is 5MB.");
       return;
@@ -46,7 +47,7 @@ function AddBookModal({ onClose }) {
 
     setError("");
     setImage(file);
-    setPreview(URL.createObjectURL(file)); // For preview
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleImageClick = () => {
@@ -71,6 +72,7 @@ function AddBookModal({ onClose }) {
     bookData.append("isbn", formData.isbn);
     bookData.append("publication", formData.publication);
     bookData.append("coverImage", image);
+    selectedGenres.forEach((id) => bookData.append("genres", id));
 
     console.log(image);
 
@@ -190,16 +192,27 @@ function AddBookModal({ onClose }) {
                 onChange={handleInputChange}
                 required
               />
-              <TextField
+
+              <InputLabel id="genre-label">Genres</InputLabel>
+              <Select
+                labelId="genre-label"
                 id="genre"
-                name="genre"
-                label="Genre"
-                variant="outlined"
-                fullWidth
-                value={formData.genre}
-                onChange={handleInputChange}
-                required
-              />
+                multiple
+                value={selectedGenres}
+                onChange={(e) => setSelectedGenres(e.target.value)}
+                renderValue={(selected) =>
+                  genres
+                    .filter((g) => selected.includes(g.id))
+                    .map((g) => g.name)
+                    .join(", ")
+                }
+              >
+                {genres.map((genre) => (
+                  <MenuItem key={genre.id} value={genre.id}>
+                    {genre.name}
+                  </MenuItem>
+                ))}
+              </Select>
 
               <TextField
                 id="summary"
