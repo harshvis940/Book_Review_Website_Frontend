@@ -116,6 +116,9 @@ function BestSellingBooks() {
     navigate("/bookDetail", { state: { book } });
   };
 
+  const handleViewAllBooks = () => {
+    navigate("/explore");
+  };
   // Use actual data if available and loaded, otherwise use dummy data
   const data = !isLoading && books && books.length > 0 ? books : dummyData;
 
@@ -123,7 +126,9 @@ function BestSellingBooks() {
     <div className=" mx-20 my-5 overflow-hidden rounded-lg">
       <div className="flex justify-between">
         <h2 className="text-bold">Bestselling Books</h2>
-        <h4>View all {">"}</h4>
+        <h4 onClick={handleViewAllBooks} className="hover:cursor-pointer">
+          View all {">"}
+        </h4>
       </div>
 
       <div className="mt-5 bg-white flex flex-row gap-13 flex-wrap">
