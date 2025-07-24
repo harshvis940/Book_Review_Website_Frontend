@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function NewBooks() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Dummy data in case books is empty or API fails
   const dummyData = [
@@ -105,9 +107,11 @@ function NewBooks() {
     return `data:image/jpeg;base64,${coverImageUrl}`;
   };
 
-  // Use actual data if available and loaded, otherwise use dummy data
+  const handleBookClick = (book) => {
+    navigate("/bookDetail", { state: { book } });
+  };
+
   const data = !isLoading && books && books.length > 0 ? books : dummyData;
-  console.log(isLoading, books);
 
   return (
     <div className=" mx-20 my-5 ">
@@ -117,7 +121,8 @@ function NewBooks() {
         {data.map((book, key) => (
           <div
             key={book.id}
-            className=" h-20 border-b-1 border-gray-400 w-95 px-2 py-2 mt-2 flex flex-row gap-5"
+            className=" h-20 border-b-1 border-gray-400 w-95 px-2 py-2 mt-2 flex flex-row gap-5 hover:cursor-pointer"
+            onClick={() => handleBookClick(book)}
           >
             <img
               src={getImageSrc(book.coverImageURL)}

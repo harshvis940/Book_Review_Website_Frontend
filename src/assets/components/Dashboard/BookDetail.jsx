@@ -9,7 +9,27 @@ import TextField from "@mui/material/TextField";
 
 function BookDetail() {
   const location = useLocation();
-  const image = location.state?.img;
+  const book = location.state?.book;
+  console.log(book);
+
+  const getImageSrc = (coverImageUrl) => {
+    if (!coverImageUrl) {
+      return "https://m.media-amazon.com/images/I/81BE7eeKzAL._UF1000,1000_QL80_.jpg";
+    }
+
+    if (
+      coverImageUrl.startsWith("http://") ||
+      coverImageUrl.startsWith("https://")
+    ) {
+      return coverImageUrl;
+    }
+
+    if (coverImageUrl.startsWith("data:image")) {
+      return coverImageUrl;
+    }
+
+    return `data:image/jpeg;base64,${coverImageUrl}`;
+  };
 
   const review = [
     {
@@ -61,7 +81,7 @@ function BookDetail() {
       Format: "Paper Black",
     },
     {
-      ISBN: "1234567890123",
+      ISBN: book.isbn,
     },
     {
       Pages: "580",
@@ -73,10 +93,10 @@ function BookDetail() {
       Dimension: "243x120nm",
     },
     {
-      Published: "2021",
+      Published: book.publicationYear,
     },
     {
-      Genre: "Romance,Action",
+      Genre: book.genres,
     },
   ];
 
@@ -109,17 +129,17 @@ function BookDetail() {
         {/* Left: Book Image (40%) - Fixed */}
         <div className="flex bg-white p-10 h-screen sticky top-0">
           <img
-            src={image}
+            src={getImageSrc(book.coverImageURL)}
             alt="Book"
-            className="w-full object-contain rounded-md shadow-md"
+            className="w-full object-contain"
           />
         </div>
 
         {/* Right: Book Details (60%) - Scrollable */}
         <div className="py-10 flex flex-col h-screen overflow-y-auto custom-scrollbar">
-          <h1 className="text-4xl font-bold mb-6 px-5">Book Title</h1>
-          <p className="text-xl mb-2 px-5">Author: Harsh</p>
-          <p className="text-xl mb-2 px-5">Genre: Self-help</p>
+          <h1 className="text-4xl font-bold mb-6 px-5">{book.title}</h1>
+          <p className="text-xl mb-2 px-5">Author: {book.authors}</p>
+          <p className="text-xl mb-2 px-5">Genre: {book.genres}</p>
           <p className="text-xl mb-2 px-5">Price: ₹499</p>
           <p className="text-xl mb-6 px-5">Rating: ⭐⭐⭐⭐☆</p>
           <p id="demo-radio-buttons-group-label" className="px-5">
@@ -169,6 +189,7 @@ function BookDetail() {
             ratione reprehenderit odio placeat eum eligendi adipisci saepe,
             cumque debitis et numquam cupiditate iure dicta nemo magni!
             Doloribus, distinctio id.
+            {book.summary}
           </p>
 
           <p className="mt-10 text-xl font-semibold px-5">Book Description</p>
