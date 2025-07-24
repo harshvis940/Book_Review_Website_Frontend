@@ -14,7 +14,7 @@ function Register() {
     username: "",
     email: "",
     password: "",
-    role: "USER",
+    role: "ADMIN",
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();

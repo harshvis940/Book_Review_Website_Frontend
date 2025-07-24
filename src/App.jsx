@@ -6,6 +6,7 @@ import Register from "./Pages/Register";
 import ProfilePage from "./Pages/ProfilePage";
 import BookDetail from "./assets/components/Dashboard/BookDetail";
 import ProtectedRoutes from "./assets/components/Authorization/ProtectedRoutes";
+import AdminDashboard from "./assets/components/Admin/AdminDashboard";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/bookDetail" element={<BookDetail />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

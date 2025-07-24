@@ -5,11 +5,18 @@ import { IoChevronDown } from "react-icons/io5";
 import { CiShoppingCart, CiUser } from "react-icons/ci";
 import TopNav from "../../static/TopNav";
 import SettingsModal from "./SettingsModal";
-function NavBar() {
+import { useNavigate } from "react-router-dom";
+function NavBar({ btnText, admin }) {
   const [settings, setSettingsModal] = useState(false);
+  const navigate = useNavigate();
   const handleSettingsClick = () => {
     console.log("Clicked");
     setSettingsModal((prev) => !prev);
+  };
+
+  const handleAdminClick = () => {
+    console.log("Done");
+    navigate("/admin", { replace: true });
   };
   return (
     <>
@@ -27,9 +34,12 @@ function NavBar() {
         </div>
 
         <div className="w-full flex flex-row justify-center items-center gap-5">
-          <Button variant="outlined">Switch to writer</Button>
-          <CiShoppingCart size={30} />
-          <IoIosNotificationsOutline size={30} />
+          <Button onClick={handleAdminClick} variant="outlined">
+            Switch to {btnText === "Reader" ? "Reader" : "Writer"}
+          </Button>
+          {!admin && <CiShoppingCart size={30} />}
+
+          {!admin && <IoIosNotificationsOutline size={30} />}
           <div
             className="flex flex-row justify-center items-center gap-2"
             onClick={handleSettingsClick}
@@ -45,7 +55,9 @@ function NavBar() {
         <TopNav />
       </div>
 
-      {settings && <SettingsModal handleClick={handleSettingsClick} />}
+      {settings && (
+        <SettingsModal admin={admin} handleClick={handleSettingsClick} />
+      )}
     </>
   );
 }
