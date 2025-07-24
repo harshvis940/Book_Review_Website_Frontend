@@ -12,7 +12,7 @@ function Dashboard() {
     <div className="min-h-screen">
       <NavBar />
       <Recommended />
-      <PopularBooks />
+      {/* <PopularBooks /> */}
       <BestSellingBooks />
       <NewBooks />
     </div>

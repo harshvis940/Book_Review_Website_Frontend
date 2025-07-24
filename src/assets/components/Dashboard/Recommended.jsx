@@ -68,13 +68,11 @@ function Recommended() {
     fetchRecommendedBooks();
   }, []);
 
-  // Helper function to process image URL
   const getImageSrc = (coverImageUrl) => {
     if (!coverImageUrl) {
       return "https://m.media-amazon.com/images/I/81BE7eeKzAL._UF1000,1000_QL80_.jpg";
     }
 
-    // Check if it's already a complete URL (http/https)
     if (
       coverImageUrl.startsWith("http://") ||
       coverImageUrl.startsWith("https://")
@@ -82,12 +80,10 @@ function Recommended() {
       return coverImageUrl;
     }
 
-    // Check if it's already a data URL
     if (coverImageUrl.startsWith("data:image")) {
       return coverImageUrl;
     }
 
-    // If it's just a base64 string, add the data URL prefix
     return `data:image/jpeg;base64,${coverImageUrl}`;
   };
 
