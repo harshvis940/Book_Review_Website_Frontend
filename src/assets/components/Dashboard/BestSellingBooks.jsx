@@ -125,7 +125,7 @@ function BestSellingBooks() {
   return (
     <div className=" mx-20 my-5 overflow-hidden rounded-lg">
       <div className="flex justify-between">
-        <h2 className="text-bold">Bestselling Books</h2>
+        <h2 className="font-bold text-lg ">Bestselling Books</h2>
         <h4 onClick={handleViewAllBooks} className="hover:cursor-pointer">
           View all {">"}
         </h4>
@@ -135,13 +135,13 @@ function BestSellingBooks() {
         {data.map((book) => (
           <div
             key={book.id}
-            className="h-fit w-70 bg-white border-1 border-gray-400 rounded-lg shadow-xs overflow-hidden"
+            className="h-fit w-70 bg-white border-1 border-gray-400 rounded-md shadow-xs overflow-hidden"
             onClick={() => handleBookClick(book)}
           >
             <img
               src={getImageSrc(book.coverImageURL)}
               alt={book.title}
-              className="w-60 h-80 mt-3 object-center rounded-lg shadow-md z-10 flex justify-self-center"
+              className="w-60 h-80 mt-3 object-center ` shadow-md z-10 flex justify-self-center"
               onError={(e) => {
                 // Fallback image if base64 fails to load
                 e.target.src =
@@ -149,8 +149,10 @@ function BestSellingBooks() {
               }}
             />
             <div className="text-sm text-center space-y-1 mt-2 mb-2">
-              <h2>{book.title || "Title Not Available"}</h2>
-              <h2>
+              <h2 className="text-lg font-bold">
+                {book.title || "Title Not Available"}
+              </h2>
+              <h2 className="font-semibold">
                 {book.authors && book.authors.length > 0
                   ? book.authors.join(", ")
                   : "Unknown Author"}
@@ -158,7 +160,7 @@ function BestSellingBooks() {
               <h2>{book.price ? `₹${book.price}` : "Price Not Available"}</h2>
               <h2>
                 {book.ratings && book.ratings.length > 0
-                  ? `${book.ratings[0]} Stars`
+                  ? `${book.ratings[0]} ratings`
                   : "No ratings"}
               </h2>
             </div>

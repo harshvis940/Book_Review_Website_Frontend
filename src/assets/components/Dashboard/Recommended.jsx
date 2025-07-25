@@ -95,13 +95,13 @@ function Recommended() {
   const data = !isLoading && books && books.length > 0 ? books : dummyData;
 
   return (
-    <div className="bg-red-200 mx-20 my-5 h-100 overflow-hidden rounded-lg">
+    <div className="bg-zinc-100 mx-20 my-5 h-100 shadow-md overflow-hidden rounded-lg">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={20}
         slidesPerView={1}
         //   navigation
-        pagination={{ clickable: true }}
+        // pagination={{ clickable: true }}
         speed={1000}
         autoplay={{ delay: 3000 }}
         loop={true}
@@ -117,7 +117,7 @@ function Recommended() {
               <img
                 src={getImageSrc(book.coverImageURL)}
                 alt={book.title}
-                className="w-100 rounded-lg h-100 overflow-hidden object-contain rounded-lg"
+                className="w-100 rounded-lg h-90 overflow-hidden object-contain rounded-lg"
                 onError={(e) => {
                   // Fallback image if base64 fails to load
                   e.target.src =
@@ -125,21 +125,24 @@ function Recommended() {
                 }}
               />
 
-              <div className="flex flex-col gap-5">
-                <h1>{book.title || "Title Not Available"}</h1>
-                <h1>
+              <div className="flex flex-col gap-3">
+                <h1 className="text-lg font-bold text-gray-800">
+                  {book.title || "Title Not Available"}
+                </h1>
+                <h1 className="text-black font-bold">
+                  By{" "}
                   {book.authors && book.authors.length > 0
                     ? book.authors.join(", ")
                     : "Unknown Author"}
                 </h1>
                 <h1>
                   {book.price
-                    ? `Price Rs ${book.price}`
+                    ? `Price: Rs ${book.price}`
                     : "Price Not Available"}
                 </h1>
                 <h1>
                   {book.ratings && book.ratings.length > 0
-                    ? `${book.ratings[0]} stars`
+                    ? `⭐️⭐️⭐️⭐️⭐️ `
                     : "No ratings"}
                 </h1>
                 <h1>

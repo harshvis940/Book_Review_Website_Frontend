@@ -115,13 +115,13 @@ function NewBooks() {
 
   return (
     <div className=" mx-20 my-5 ">
-      <h1 className="text-bold">Newly Added Books</h1>
+      <h1 className="font-bold">Newly Added Books</h1>
 
-      <div className="grid grid-cols-3 gap-10">
+      <div className="grid grid-cols-3 gap-10 mt-5">
         {data.map((book, key) => (
           <div
             key={book.id}
-            className=" h-20 border-b-1 border-gray-400 w-95 px-2 py-2 mt-2 flex flex-row gap-5 hover:cursor-pointer"
+            className=" h-30 border-b-1 border-gray-400 w-95 px-2 py-2 mt-2 flex flex-row gap-5 hover:cursor-pointer"
             onClick={() => handleBookClick(book)}
           >
             <img
@@ -135,15 +135,17 @@ function NewBooks() {
               }}
             />
             <div className="flex flex-col">
-              <h1>{book.title || "Title Not Available"}</h1>
-              <h1>
+              <h1 className="font-bold">
+                {book.title || "Title Not Available"}
+              </h1>
+              <h1 className="font-semibold">
                 {book.authors && book.authors.length > 0
                   ? book.authors.join(", ")
                   : "Unknown Author"}
               </h1>
               <h1>
                 {book.ratings && book.ratings.length > 0
-                  ? `${book.ratings[0]} Stars`
+                  ? `${book.ratings[0]} ratings`
                   : "No ratings yet"}
               </h1>
             </div>
