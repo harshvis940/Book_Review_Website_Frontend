@@ -36,6 +36,11 @@ function ExplorePage() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   const navigate = useNavigate();
+  const [visible, setVisile] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setVisile(true), 100);
+  }, []);
 
   const fetchAllBooks = async () => {
     try {
@@ -98,7 +103,11 @@ function ExplorePage() {
     (minRating > 0 ? 1 : 0);
 
   return (
-    <>
+    <div
+      className={`transition-opacity duration-700 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
+    >
       <NavBar />
 
       {/* Search and Filter Section */}
@@ -214,7 +223,7 @@ function ExplorePage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

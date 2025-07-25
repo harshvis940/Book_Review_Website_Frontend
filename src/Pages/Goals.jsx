@@ -15,6 +15,11 @@ function Goals() {
   const [readingList, setReadingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [visible, setVisile] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setVisile(true), 50);
+  }, []);
 
   useEffect(() => {
     fetchReadingList();
