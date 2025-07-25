@@ -21,6 +21,8 @@ function BookDetail() {
   const [newReviewText, setNewReviewText] = useState("");
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [isReplyOpen, setIsReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState("");
 
   const [reviewInteractions, setReviewInteractions] = useState({});
   const [replyStates, setReplyStates] = useState({});
@@ -64,6 +66,50 @@ function BookDetail() {
       setSnackbarMessage("Added to reading list!");
       setSnackbarSeverity("success");
     }
+  };
+
+  // Handle reply functionality
+  const handleReplyClick = (reviewIndex) => {
+    // Remove this line: setIsReplyOpen(true);
+    setReplyStates((prev) => ({
+      ...prev,
+      [reviewIndex]: !prev[reviewIndex],
+    }));
+  };
+
+  const handleReplySubmit = (reviewIndex) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("Please login to reply");
+      return;
+    }
+
+    const replyText = replyTexts[reviewIndex];
+    if (!replyText || !replyText.trim()) {
+      alert("Please write a reply");
+      return;
+    }
+
+    // Here you would typically save the reply to your backend or localStorage
+    // For now, we'll just show an alert and clear the reply
+    alert("Reply posted successfully!");
+
+    // Clear reply text and close reply box
+    setReplyTexts((prev) => ({
+      ...prev,
+      [reviewIndex]: "",
+    }));
+    setReplyStates((prev) => ({
+      ...prev,
+      [reviewIndex]: false,
+    }));
+  };
+
+  const handleReplyTextChange = (reviewIndex, text) => {
+    setReplyTexts((prev) => ({
+      ...prev,
+      [reviewIndex]: text,
+    }));
   };
 
   useEffect(() => {
@@ -432,66 +478,103 @@ function BookDetail() {
                   disliked: false,
                 };
                 return (
-                  <div className="flex ">
-                    <div className="m-auto">
-                      <SlOptionsVertical />
-                    </div>
-                    <div
-                      key={key}
-                      className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190"
-                    >
-                      {/* Placeholder for avatar or icon */}
-                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-white">
-                        {val.name[0]}
+                  <div key={key} className="mb-6">
+                    {" "}
+                    {/* Wrap each review and its reply in a container */}
+                    <div className="flex">
+                      <div className="m-auto">
+                        <SlOptionsVertical />
                       </div>
+                      <div className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190">
+                        {/* Placeholder for avatar or icon */}
+                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                          {val.name[0]}
+                        </div>
 
-                      {/* Review content */}
-                      <div className="flex flex-col flex-1 overflow-hidden">
-                        <p className="font-semibold">{val.name}</p>
-                        <p className="text-yellow-500">{val.stars}</p>
-                        <p className="text-gray-700 break-words whitespace-pre-wrap">
-                          {val.reviews}
-                        </p>
-                        <div className="text-xs mt-5 flex gap-5 items-center">
-                          <SlLike
-                            className="hover:cursor-pointer transition-colors duration-200"
-                            size={15}
-                            fill={
-                              currentInteraction.liked ? "#22c55e" : "#1976d2"
-                            }
-                            style={{
-                              color: currentInteraction.liked
-                                ? "#22c55e"
-                                : "#1976d2",
-                              opacity: currentInteraction.liked ? 1 : 0.7,
-                            }}
-                            onClick={() => handleLikeDislike(key, "like")}
-                          />
-                          <SlDislike
-                            className="hover:cursor-pointer transition-colors duration-200"
-                            size={15}
-                            fill={
-                              currentInteraction.disliked
-                                ? "#ef4444"
-                                : "#1976d2"
-                            }
-                            style={{
-                              color: currentInteraction.disliked
-                                ? "#ef4444"
-                                : "#1976d2",
-                              opacity: currentInteraction.disliked ? 1 : 0.7,
-                            }}
-                            onClick={() => handleLikeDislike(key, "dislike")}
-                          />
-                          <h1
-                            className="hover:cursor-pointer hover:text-blue-600 transition-colors duration-200"
-                            onClick={() => handleReplyClick(key)}
-                          >
-                            Reply
-                          </h1>
+                        {/* Review content */}
+                        <div className="flex flex-col flex-1 overflow-hidden">
+                          <p className="font-semibold">{val.name}</p>
+                          <p className="text-yellow-500">{val.stars}</p>
+                          <p className="text-gray-700 break-words whitespace-pre-wrap">
+                            {val.reviews}
+                          </p>
+                          <div className="text-xs mt-5 flex gap-5 items-center">
+                            <SlLike
+                              className="hover:cursor-pointer transition-colors duration-200"
+                              size={15}
+                              fill={
+                                currentInteraction.liked ? "#22c55e" : "#1976d2"
+                              }
+                              style={{
+                                color: currentInteraction.liked
+                                  ? "#22c55e"
+                                  : "#1976d2",
+                                opacity: currentInteraction.liked ? 1 : 0.7,
+                              }}
+                              onClick={() => handleLikeDislike(key, "like")}
+                            />
+                            <SlDislike
+                              className="hover:cursor-pointer transition-colors duration-200"
+                              size={15}
+                              fill={
+                                currentInteraction.disliked
+                                  ? "#ef4444"
+                                  : "#1976d2"
+                              }
+                              style={{
+                                color: currentInteraction.disliked
+                                  ? "#ef4444"
+                                  : "#1976d2",
+                                opacity: currentInteraction.disliked ? 1 : 0.7,
+                              }}
+                              onClick={() => handleLikeDislike(key, "dislike")}
+                            />
+                            <h1
+                              className="hover:cursor-pointer hover:text-blue-600 transition-colors duration-200"
+                              onClick={() => handleReplyClick(key)}
+                            >
+                              Reply
+                            </h1>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    {/* Reply box appears below the review card */}
+                    {replyStates[key] && (
+                      <div className="reply-box ml-16 mr-4 bg-gray-50 p-4 rounded-md border-l-4 border-blue-400 mt-2">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">
+                            {localStorage.getItem("userName")?.charAt(0) || "U"}
+                          </div>
+                          <div className="flex-1">
+                            <textarea
+                              className="w-full border border-gray-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                              rows="3"
+                              placeholder={`Reply to ${val.name}...`}
+                              value={replyTexts[key] || ""}
+                              onChange={(e) =>
+                                handleReplyTextChange(key, e.target.value)
+                              }
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors duration-200"
+                                onClick={() => handleReplySubmit(key)}
+                                disabled={!(replyTexts[key] || "").trim()}
+                              >
+                                Post Reply
+                              </button>
+                              <button
+                                className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400 transition-colors duration-200"
+                                onClick={() => handleReplyClick(key)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
