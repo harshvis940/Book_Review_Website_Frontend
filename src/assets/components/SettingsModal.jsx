@@ -1,14 +1,12 @@
 import React from "react";
 import { CiUser } from "react-icons/ci";
-import { FiSettings } from "react-icons/fi";
+import { FiSettings, FiLogOut } from "react-icons/fi";
 import { MdHelpOutline } from "react-icons/md";
-import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 function SettingsModal({ admin }) {
   const navigate = useNavigate();
 
-  // Show all options if not admin, only "Logout" if admin
   const data = admin
     ? [{ text: "Logout" }]
     : [
@@ -29,16 +27,21 @@ function SettingsModal({ admin }) {
     "Edit Profile": "/profile",
     Settings: "/settings",
     Help: "/help",
-    Logout: "/logout", // You can also handle logout logic here
   };
 
   const handleClick = (e) => {
     const label = e.currentTarget.getAttribute("data-label");
+
     if (label === "Logout") {
-      // Optionally clear token here
       localStorage.removeItem("token");
+      navigate("/");
+      return;
     }
-    navigate(navigateMap[label]);
+
+    const path = navigateMap[label];
+    if (typeof path === "string") {
+      navigate(path);
+    }
   };
 
   return (

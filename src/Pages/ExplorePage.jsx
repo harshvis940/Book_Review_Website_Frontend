@@ -88,7 +88,7 @@ function ExplorePage() {
   }, [books, searchQuery]);
 
   const handleBookClick = (book) => {
-    navigate(`/book/${book.id}`, { state: { book } });
+    navigate(`/bookDetail/`, { state: { book } });
   };
 
   const activeFiltersCount =

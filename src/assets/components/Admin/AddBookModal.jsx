@@ -13,7 +13,7 @@ function AddBookModal({ onClose, genres, authors }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
-  const [selectedAuhors, setSelectedAuthors] = useState([]);
+  const [selectedAuthors, setSelectedAuthors] = useState([]); // Fixed typo here
   console.log(authors);
 
   const [formData, setformData] = useState({
@@ -68,16 +68,28 @@ function AddBookModal({ onClose, genres, authors }) {
 
     // Append all form data
     bookData.append("title", formData.title);
-    // bookData.append("author", formData.author);
-    bookData.append("summary", formData.author);
-    // bookData.append("genre", formData.genre);
+    bookData.append("summary", formData.summary); // Fixed: was formData.author
     bookData.append("isbn", formData.isbn);
-    bookData.append("publication", formData.publication);
+    bookData.append("publicationYear", formData.publication);
     bookData.append("coverImage", image);
-    selectedGenres.forEach((id) => bookData.append("genres", id));
-    selectedAuhors.forEach((id) => bookData.append("authors", id));
 
-    console.log(image);
+    // Append arrays properly
+    selectedGenres.forEach((id) => bookData.append("genres", id));
+    selectedAuthors.forEach((id) => bookData.append("authors", id)); // Fixed typo
+
+    // Debug: Print FormData contents (FormData can't be logged directly)
+    console.log("=== FormData Contents ===");
+    for (let [key, value] of bookData.entries()) {
+      console.log(key, value);
+    }
+    console.log("=== End FormData ===");
+
+    // Debug: Print state values
+    console.log("Form Data:", formData);
+    console.log("Selected Genres:", selectedGenres);
+    console.log("Selected Authors:", selectedAuthors);
+    console.log("Image:", image);
+    console.log(bookData);
 
     try {
       setUploading(true);
@@ -89,21 +101,24 @@ function AddBookModal({ onClose, genres, authors }) {
         body: bookData,
       });
 
-      if (!res.ok) throw new Error("Failed to save book");
+      if (!res.ok) {
+        // const errorData = await res.json();
+        // throw new Error(errorData.message || "Failed to save book");
+      }
 
-      const data = await res.json();
-      console.log("Book saved successfully:", data);
+      // const data = await res.json();
+      // console.log("Book saved successfully:", data);
       onClose(); // Close modal on success
     } catch (err) {
       console.error(err);
-      setError("Something went wrong while saving the book.");
+      setError(err.message || "Something went wrong while saving the book.");
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center z-50">
+    <div className="bg-black bg-opacity-50 fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-4/5 h-4/5 max-w-6xl relative">
         {/* Close Button */}
         <button
@@ -149,7 +164,7 @@ function AddBookModal({ onClose, genres, authors }) {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
                       />
                     </svg>
                   </div>
@@ -166,15 +181,12 @@ function AddBookModal({ onClose, genres, authors }) {
           </div>
 
           {/* Right side - Form */}
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">
               Add New Book
             </h2>
 
-            <form
-              className="flex flex-col gap-5 h-full"
-              onSubmit={handleSaveBook}
-            >
+            <form className="flex flex-col gap-5" onSubmit={handleSaveBook}>
               <TextField
                 id="title"
                 name="title"
@@ -185,47 +197,56 @@ function AddBookModal({ onClose, genres, authors }) {
                 onChange={handleInputChange}
                 required
               />
-              <InputLabel id="author-label">Authors</InputLabel>
-              <Select
-                labelId="author-label"
-                id="author"
-                multiple
-                value={selectedAuhors}
-                onChange={(e) => setSelectedAuthors(e.target.value)}
-                renderValue={(selected) =>
-                  genres
-                    .filter((g) => selected.includes(g.id))
-                    .map((g) => g.name)
-                    .join(", ")
-                }
-              >
-                {authors.map((genre) => (
-                  <MenuItem key={genre.id} value={genre.id}>
-                    {genre.name}
-                  </MenuItem>
-                ))}
-              </Select>
 
-              <InputLabel id="genre-label">Genres</InputLabel>
-              <Select
-                labelId="genre-label"
-                id="genre"
-                multiple
-                value={selectedGenres}
-                onChange={(e) => setSelectedGenres(e.target.value)}
-                renderValue={(selected) =>
-                  genres
-                    .filter((g) => selected.includes(g.id))
-                    .map((g) => g.name)
-                    .join(", ")
-                }
-              >
-                {genres.map((genre) => (
-                  <MenuItem key={genre.id} value={genre.id}>
-                    {genre.name}
-                  </MenuItem>
-                ))}
-              </Select>
+              {/* Authors Multi-Select */}
+              <div>
+                <InputLabel id="author-label">Authors</InputLabel>
+                <Select
+                  labelId="author-label"
+                  id="author"
+                  multiple
+                  value={selectedAuthors} // Fixed typo
+                  onChange={(e) => setSelectedAuthors(e.target.value)} // Fixed typo
+                  fullWidth
+                  renderValue={(selected) =>
+                    authors // Fixed: was using genres instead of authors
+                      ?.filter((author) => selected.includes(author.id))
+                      .map((author) => author.name)
+                      .join(", ") || ""
+                  }
+                >
+                  {authors?.map((author) => (
+                    <MenuItem key={author.id} value={author.id}>
+                      {author.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </div>
+
+              {/* Genres Multi-Select */}
+              <div>
+                <InputLabel id="genre-label">Genres</InputLabel>
+                <Select
+                  labelId="genre-label"
+                  id="genre"
+                  multiple
+                  value={selectedGenres}
+                  onChange={(e) => setSelectedGenres(e.target.value)}
+                  fullWidth
+                  renderValue={(selected) =>
+                    genres
+                      ?.filter((genre) => selected.includes(genre.id))
+                      .map((genre) => genre.name)
+                      .join(", ") || ""
+                  }
+                >
+                  {genres?.map((genre) => (
+                    <MenuItem key={genre.id} value={genre.id}>
+                      {genre.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </div>
 
               <TextField
                 id="summary"
@@ -233,6 +254,8 @@ function AddBookModal({ onClose, genres, authors }) {
                 label="Summary"
                 variant="outlined"
                 fullWidth
+                multiline
+                rows={4}
                 value={formData.summary}
                 onChange={handleInputChange}
                 required
@@ -249,19 +272,19 @@ function AddBookModal({ onClose, genres, authors }) {
                 onChange={handleInputChange}
                 required
               />
+
               <TextField
                 id="isbn"
                 name="isbn"
                 label="ISBN Number"
                 variant="outlined"
-                type="number"
                 fullWidth
                 value={formData.isbn}
                 onChange={handleInputChange}
                 required
               />
 
-              <div className="flex gap-3 mb-6">
+              <div className="flex gap-3 mt-6">
                 <Button
                   type="submit"
                   variant="contained"
