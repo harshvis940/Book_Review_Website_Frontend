@@ -11,6 +11,11 @@ module.exports = {
         bgMain: "red",
         accentBg: "#ffcc00",
       },
+      fontFamily: {
+        sans: ["Poppins", "sans-serif"],
+        roboto: ["Roboto", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
+      },
     },
   },
   plugins: [],

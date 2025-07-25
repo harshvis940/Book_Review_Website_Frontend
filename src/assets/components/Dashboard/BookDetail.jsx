@@ -10,11 +10,22 @@ import Snackbar from "@mui/material/Snackbar";
 import { getImageSrc } from "../../../static/DefaultExports";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import { SlOptionsVertical } from "react-icons/sl";
+import { SlLike, SlDislike } from "react-icons/sl";
 
 function BookDetail() {
   const location = useLocation();
   const book = location.state?.book;
   const [isInReadingList, setIsInReadingList] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const [reviewInteractions, setReviewInteractions] = useState({});
+  const [replyStates, setReplyStates] = useState({});
+  const [replyTexts, setReplyTexts] = useState({});
+
   console.log(book);
 
   const handleAddToReadingList = () => {
@@ -63,6 +74,67 @@ function BookDetail() {
         localStorage.getItem(`readingList_${userId}`) || "[]"
       );
       setIsInReadingList(readingList.some((item) => item.id === book.id));
+    }
+  }, [book]);
+
+  useEffect(() => {
+    const bookId = book?.id;
+    if (bookId) {
+      const savedReviews = localStorage.getItem(`reviews_${bookId}`);
+      if (savedReviews) {
+        setReviews(JSON.parse(savedReviews));
+      } else {
+        // Default reviews
+        const defaultReviews = [
+          {
+            id: 1,
+            name: "Bisola",
+            rating: 5,
+            stars: "⭐️⭐️⭐️⭐️⭐️",
+            reviews:
+              "This book completely changed my perspective! The writing style is engaging and the concepts are presented in a very accessible way. I couldn't put it down once I started reading.",
+            userId: "user1",
+            timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            likes: 12,
+            dislikes: 2,
+            likedBy: [],
+            dislikedBy: [],
+          },
+          {
+            id: 2,
+            name: "John Smith",
+            rating: 4,
+            stars: "⭐️⭐️⭐️⭐️",
+            reviews:
+              "Great book with valuable insights. Some parts were a bit repetitive, but overall a solid read. Would recommend to anyone interested in the topic.",
+            userId: "user2",
+            timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+            likes: 8,
+            dislikes: 1,
+            likedBy: [],
+            dislikedBy: [],
+          },
+          {
+            id: 3,
+            name: "Sarah Wilson",
+            rating: 5,
+            stars: "⭐️⭐️⭐️⭐️⭐️",
+            reviews:
+              "Absolutely loved this book! The author's expertise really shows through. Each chapter builds upon the previous one perfectly. This is definitely going on my favorites list.",
+            userId: "user3",
+            timestamp: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+            likes: 15,
+            dislikes: 0,
+            likedBy: [],
+            dislikedBy: [],
+          },
+        ];
+        setReviews(defaultReviews);
+        localStorage.setItem(
+          `reviews_${bookId}`,
+          JSON.stringify(defaultReviews)
+        );
+      }
     }
   }, [book]);
 
@@ -135,6 +207,39 @@ function BookDetail() {
     },
   ];
 
+  const handleLikeDislike = (reviewIndex, action) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("Please login to like/dislike reviews");
+      return;
+    }
+
+    setReviewInteractions((prev) => {
+      const current = prev[reviewIndex] || { liked: false, disliked: false };
+      const newState = { ...prev };
+
+      if (action === "like") {
+        if (current.liked) {
+          // Remove like
+          newState[reviewIndex] = { liked: false, disliked: current.disliked };
+        } else {
+          // Add like, remove dislike if exists
+          newState[reviewIndex] = { liked: true, disliked: false };
+        }
+      } else if (action === "dislike") {
+        if (current.disliked) {
+          // Remove dislike
+          newState[reviewIndex] = { liked: current.liked, disliked: false };
+        } else {
+          // Add dislike, remove like if exists
+          newState[reviewIndex] = { liked: false, disliked: true };
+        }
+      }
+
+      return newState;
+    });
+  };
+
   return (
     <>
       {/* Custom scrollbar styles */}
@@ -166,6 +271,27 @@ function BookDetail() {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
           }
+
+          .review-card {
+            transition: all 0.2s ease;
+          }
+
+          .review-card:hover {
+            background-color: #f8f9fa;
+          }
+
+          .like-btn, .dislike-btn {
+            transition: all 0.2s ease;
+          }
+
+          .like-btn:hover {
+            background-color: #e3f2fd;
+          }
+
+          .dislike-btn:hover {
+            background-color: #ffebee;
+          }
+
         `}
       </style>
 
@@ -180,15 +306,18 @@ function BookDetail() {
         </div>
 
         {/* Right: Book Details (60%) - Scrollable */}
-        <div className="py-10 flex flex-col h-screen overflow-y-auto custom-scrollbar">
-          <h1 className="text-4xl font-bold mb-6 px-5">{book.title}</h1>
-          <p className="text-xl mb-2 px-5">Author: {book.authors}</p>
-          <p className="text-xl mb-2 px-5">Genre: {book.genres}</p>
-          <p className="text-xl mb-2 px-5">Price: ₹499</p>
-          <p className="text-xl mb-6 px-5">Rating: ⭐⭐⭐⭐☆</p>
-          <p id="demo-radio-buttons-group-label" className="px-5">
-            Choose prefered format
-          </p>
+        <div className=" w-full flex flex-col h-screen overflow-y-auto overflow-x-hidden custom-scrollbar">
+          <div className="mt-10">
+            <h1 className="text-4xl font-bold mb-6 px-5">{book.title}</h1>
+            <p className="text-xl mb-2 px-5">Author: {book.authors}</p>
+            <p className="text-xl mb-2 px-5">Genre: {book.genres}</p>
+            <p className="text-xl mb-2 px-5">Price: ₹499</p>
+            <p className="text-xl mb-6 px-5">Rating: ⭐⭐⭐⭐☆</p>
+            <p id="demo-radio-buttons-group-label" className="px-5">
+              Choose prefered format
+            </p>
+          </div>
+
           <RadioGroup
             row
             aria-labelledby="demo-radio-buttons-group-label"
@@ -273,8 +402,10 @@ function BookDetail() {
           </div>
 
           <div className="bg-zinc-100 mt-2 px-5 py-3">
-            <p>Reviews</p>
-            <p className="mb-3">See what people think about Tile of the book</p>
+            <p className="text-xl font-bold">Reviews</p>
+            <p className="mb-3 text-sm">
+              See what people think about Tile of the book
+            </p>
 
             <div className="flex flex-row gap-3">
               <p>4.0</p>
@@ -294,19 +425,77 @@ function BookDetail() {
             <div className="bg-white w-30 p-3 text-center rounded-md">
               <p className="hover:cursor-pointer">Post</p>
             </div>
+            <div className=" px-4 py-3">
+              {review.map((val, key) => {
+                const currentInteraction = reviewInteractions[key] || {
+                  liked: false,
+                  disliked: false,
+                };
+                return (
+                  <div className="flex ">
+                    <div className="m-auto">
+                      <SlOptionsVertical />
+                    </div>
+                    <div
+                      key={key}
+                      className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190"
+                    >
+                      {/* Placeholder for avatar or icon */}
+                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                        {val.name[0]}
+                      </div>
 
-            {review.map((val, key) => (
-              <div
-                key={key}
-                className="mt-4 flex gap-2 flex-col border-b-2 border-white"
-              >
-                <p className="font-semibold">{val.name}</p>
-                <p>{val.stars}</p>
-                <p className="break-words whitespace-pre-wrap w-full text-justify">
-                  {val.reviews}
-                </p>
-              </div>
-            ))}
+                      {/* Review content */}
+                      <div className="flex flex-col flex-1 overflow-hidden">
+                        <p className="font-semibold">{val.name}</p>
+                        <p className="text-yellow-500">{val.stars}</p>
+                        <p className="text-gray-700 break-words whitespace-pre-wrap">
+                          {val.reviews}
+                        </p>
+                        <div className="text-xs mt-5 flex gap-5 items-center">
+                          <SlLike
+                            className="hover:cursor-pointer transition-colors duration-200"
+                            size={15}
+                            fill={
+                              currentInteraction.liked ? "#22c55e" : "#1976d2"
+                            }
+                            style={{
+                              color: currentInteraction.liked
+                                ? "#22c55e"
+                                : "#1976d2",
+                              opacity: currentInteraction.liked ? 1 : 0.7,
+                            }}
+                            onClick={() => handleLikeDislike(key, "like")}
+                          />
+                          <SlDislike
+                            className="hover:cursor-pointer transition-colors duration-200"
+                            size={15}
+                            fill={
+                              currentInteraction.disliked
+                                ? "#ef4444"
+                                : "#1976d2"
+                            }
+                            style={{
+                              color: currentInteraction.disliked
+                                ? "#ef4444"
+                                : "#1976d2",
+                              opacity: currentInteraction.disliked ? 1 : 0.7,
+                            }}
+                            onClick={() => handleLikeDislike(key, "dislike")}
+                          />
+                          <h1
+                            className="hover:cursor-pointer hover:text-blue-600 transition-colors duration-200"
+                            onClick={() => handleReplyClick(key)}
+                          >
+                            Reply
+                          </h1>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

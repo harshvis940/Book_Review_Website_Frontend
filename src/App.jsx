@@ -8,6 +8,7 @@ import BookDetail from "./assets/components/Dashboard/BookDetail";
 import ProtectedRoutes from "./assets/components/Authorization/ProtectedRoutes";
 import AdminDashboard from "./assets/components/Admin/AdminDashboard";
 import ExplorePage from "./Pages/ExplorePage";
+import Goals from "./Pages/Goals";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/bookDetail" element={<BookDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/goals" element={<Goals />} />
       </Routes>
     </BrowserRouter>
   );

@@ -10,7 +10,7 @@ import NewBooks from "../assets/components/Dashboard/NewBooks";
 function Dashboard() {
   return (
     <div className="min-h-screen">
-      <NavBar />
+      <NavBar btnText={"admin"} />
       <Recommended />
       {/* <PopularBooks /> */}
       <BestSellingBooks />
