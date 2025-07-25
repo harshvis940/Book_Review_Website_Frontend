@@ -8,7 +8,7 @@ function TopNav() {
     { to: "/explore", label: "Explore" },
     { to: "/goals", label: "Goals" },
     { to: "/profile", label: "Profile" },
-    { to: "/", label: "Login" },
+    { to: "/", label: "Logout" },
   ];
 
   const isActive = (path) => {
