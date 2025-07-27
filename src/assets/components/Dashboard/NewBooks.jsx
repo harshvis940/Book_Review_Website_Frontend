@@ -71,6 +71,8 @@ function NewBooks() {
         console.log("Fetched books:", response);
         // Extract the data array from the response object
         setBooks(response.data || []);
+      } else {
+        console.log("Error");
       }
     } catch (err) {
       console.log("Error fetching books:", err);

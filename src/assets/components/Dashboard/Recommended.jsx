@@ -115,7 +115,7 @@ function Recommended() {
               className="flex justify-center rounded-md overflow-hidden mt-10"
             >
               <img
-                src={getImageSrc(book.coverImageURL)}
+                src={getImageSrc(book.coverImageUrl)}
                 alt={book.title}
                 className="w-100 rounded-lg h-90 overflow-hidden object-contain rounded-lg"
                 onError={(e) => {

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 function BestSellingBooks() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   // Dummy data in case books is empty or API fails
@@ -70,46 +71,73 @@ function BestSellingBooks() {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
       });
-      if (res.ok) {
-        const response = await res.json();
-        console.log("Fetched bestselling books:", response);
-        // Extract the data array from the response object
-        setBooks(response.data || []);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
-    } catch (err) {
-      console.log("Error fetching bestselling books:", err);
+
+      try {
+        const text = await res.text();
+        console.log(text);
+        const response = await res.json();
+        console.log(res);
+        if (response && response.data && Array.isArray(response.data)) {
+          // Filter out any books with incomplete/invalid image data
+          const validBooks = response.data.filter((book) => {
+            if (!book.coverImageURL) return true; // Allow books without images
+            // Check if base64 is complete (basic validation)
+            return book.coverImageURL.length > 100; // Adjust this threshold
+          });
+
+          setBooks(validBooks);
+        } else {
+          setBooks([]);
+        }
+      } catch (parseError) {
+        console.error("JSON Parse Error - Response too large or malformed");
+        setBooks([]); // Will use dummy data
+      }
+    } catch (error) {
+      console.error("Network Error:", error);
+      setBooks([]);
     } finally {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchBestSellingBooks();
+    console.log(books);
   }, []);
 
-  // Helper function to process image URL
-  const getImageSrc = (coverImageUrl) => {
-    if (!coverImageUrl) {
+  const getImageSrc = (coverImageURL) => {
+    if (!coverImageURL) {
       return "https://s3.ap-south-1.amazonaws.com/storage.commonfolks.in/docs/products/images_full/the-power-of-your-subconscious-mind-pen-bird_FrontImage_335.gif";
     }
 
-    // Check if it's already a complete URL (http/https)
+    // Check if it's already a complete URL
     if (
-      coverImageUrl.startsWith("http://") ||
-      coverImageUrl.startsWith("https://")
+      coverImageURL.startsWith("http://") ||
+      coverImageURL.startsWith("https://")
     ) {
-      return coverImageUrl;
+      return coverImageURL;
     }
 
     // Check if it's already a data URL
-    if (coverImageUrl.startsWith("data:image")) {
-      return coverImageUrl;
+    if (coverImageURL.startsWith("data:image")) {
+      return coverImageURL;
     }
 
-    // If it's just a base64 string, add the data URL prefix
-    return `data:image/jpeg;base64,${coverImageUrl}`;
+    // Validate base64 string (basic check)
+    if (coverImageURL.length < 100) {
+      console.warn("Base64 string seems incomplete, using fallback");
+      return "https://s3.ap-south-1.amazonaws.com/storage.commonfolks.in/docs/products/images_full/the-power-of-your-subconscious-mind-pen-bird_FrontImage_335.gif";
+    }
+
+    // If it's a base64 string, add the data URL prefix
+    return `data:image/jpeg;base64,${coverImageURL}`;
   };
 
   const handleBookClick = (book) => {
