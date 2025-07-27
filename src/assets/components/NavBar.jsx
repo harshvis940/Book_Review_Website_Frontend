@@ -37,15 +37,15 @@ function NavBar({ btnText, admin }) {
     }
   };
 
-  useEffect(() => {
-    if (!admin) fetchNotifications(); // Reader fetches notifications
+  // useEffect(() => {
+  //   if (!admin) fetchNotifications(); // Reader fetches notifications
 
-    const interval = setInterval(() => {
-      if (!admin) fetchNotifications();
-    }, 15000); // poll every 15s
+  //   const interval = setInterval(() => {
+  //     if (!admin) fetchNotifications();
+  //   }, 15000); // poll every 15s
 
-    return () => clearInterval(interval);
-  }, [admin]);
+  //   return () => clearInterval(interval);
+  // }, [admin]);
 
   const toggleNotifications = () => {
     setShowNotifications((prev) => !prev);

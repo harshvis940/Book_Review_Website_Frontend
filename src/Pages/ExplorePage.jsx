@@ -44,7 +44,7 @@ function ExplorePage() {
 
   const fetchAllBooks = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/book/getBestSeller`, {
+      const res = await fetch(`${API_BASE_URL}/book/getAll`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -53,6 +53,7 @@ function ExplorePage() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log(data);
         setBooks(data.data || []);
         setFilteredBooks(data.data || []);
       }
@@ -185,7 +186,7 @@ function ExplorePage() {
               onClick={() => handleBookClick(book)}
             >
               <img
-                src={getImageSrc(book.coverImageURL)}
+                src={getImageSrc(book.coverImageUrl)}
                 alt={book.title}
                 className="w-60 h-80 mt-3 object-center rounded-lg shadow-md z-10 flex justify-self-center"
                 onError={(e) => {

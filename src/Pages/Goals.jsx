@@ -10,13 +10,15 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { getImageSrc } from "../static/DefaultExports";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { Button } from "@mui/material";
+import { useSelector } from "react-redux";
 
 function Goals() {
   const [readingList, setReadingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [visible, setVisile] = useState(false);
-
+  const cartItems = useSelector((state) => state.cart.items);
+  console.log(cartItems);
   useEffect(() => {
     setTimeout(() => setVisile(true), 50);
   }, []);
@@ -26,13 +28,14 @@ function Goals() {
   }, []);
 
   const fetchReadingList = () => {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      const list = JSON.parse(
-        localStorage.getItem(`readingList_${userId}`) || "[]"
-      );
-      setReadingList(list);
-    }
+    // const userId = localStorage.getItem("userId");
+    // if (userId) {
+    //   const list = JSON.parse(
+    //     localStorage.getItem(`readingList_${userId}`) || "[]"
+    //   );
+    //   setReadingList(list);
+    // }
+    setReadingList(cartItems);
     setLoading(false);
   };
 

@@ -12,6 +12,11 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { SlOptionsVertical } from "react-icons/sl";
 import { SlLike, SlDislike } from "react-icons/sl";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../../Redux/cartSlice";
+import NavBar from "../NavBar";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function BookDetail() {
   const location = useLocation();
@@ -27,44 +32,37 @@ function BookDetail() {
   const [reviewInteractions, setReviewInteractions] = useState({});
   const [replyStates, setReplyStates] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
+  const [allBooks, setBooks] = useState([]);
+  const dispatch = useDispatch();
+  const allBooksObj = useSelector((state) => state.cart.items);
+  const [isAdded, setIsAdded] = useState(false);
+  // console.log(book);
 
-  console.log(book);
+  const handleAddToCart = () => {
+    dispatch(addToCart(book));
+  };
+
+  const checkBookAdded = (allBooksObj) => {
+    console.log(allBooksObj);
+    setBooks(allBooksObj);
+    const existing = allBooksObj.filter((item) => book.id === item.id);
+    if (existing.length > 0) {
+      setIsAdded(true);
+    }
+    console.log(existing);
+  };
+  useEffect(() => {
+    checkBookAdded(allBooksObj);
+  }, []);
 
   const handleAddToReadingList = () => {
-    const userId = localStorage.getItem("userId");
-
-    if (!userId) {
-      alert("user not prese");
-      // return;
-    }
-
-    const readingListKey = `readingList_${userId}`;
-    const existingList = JSON.parse(
-      localStorage.getItem(readingListKey) || "[]"
-    );
-
-    if (isInReadingList) {
-      // Remove from reading list
-      const updatedList = existingList.filter((item) => item.id !== book.id);
-      localStorage.setItem(readingListKey, JSON.stringify(updatedList));
-      setIsInReadingList(false);
-      setSnackbarMessage("Removed from reading list");
-      setSnackbarSeverity("info");
-    } else {
-      // Add to reading list
-      const bookToAdd = {
-        id: book.id,
-        title: book.title,
-        authors: book.authors,
-        coverImageURL: book.coverImageURL,
-        genres: book.genres,
-        addedAt: new Date().toISOString(),
-      };
-      existingList.push(bookToAdd);
-      localStorage.setItem(readingListKey, JSON.stringify(existingList));
-      setIsInReadingList(true);
-      setSnackbarMessage("Added to reading list!");
-      setSnackbarSeverity("success");
+    try {
+      dispatch(addToCart(book));
+      toast.success("Book added successfully!");
+      console.log("Done");
+    } catch (err) {
+      alert("Error adding book");
+      toast.error(err);
     }
   };
 
@@ -90,8 +88,6 @@ function BookDetail() {
       return;
     }
 
-    // Here you would typically save the reply to your backend or localStorage
-    // For now, we'll just show an alert and clear the reply
     alert("Reply posted successfully!");
 
     // Clear reply text and close reply box
@@ -113,7 +109,6 @@ function BookDetail() {
   };
 
   useEffect(() => {
-    // Check if book is already in reading list
     const userId = localStorage.getItem("userId");
     if (userId && book?.id) {
       const readingList = JSON.parse(
@@ -340,12 +335,12 @@ function BookDetail() {
 
         `}
       </style>
-
+      <NavBar />
       <div className="h-screen grid grid-cols-[40%_60%]">
         {/* Left: Book Image (40%) - Fixed */}
         <div className="flex bg-white p-10 h-screen sticky top-0">
           <img
-            src={getImageSrc(book?.coverImageURL)}
+            src={getImageSrc(book?.coverImageUrl)}
             alt="Book"
             className="w-full object-contain"
           />
@@ -379,29 +374,27 @@ function BookDetail() {
             <FormControlLabel value="Ebook" control={<Radio />} label="Ebook" />
           </RadioGroup>
           <div className="w-150 mt-5 flex flex-row gap-5 px-5">
-            <Button variant="contained">Buy Now</Button>
+            <Button onClick={handleAddToCart} variant="contained">
+              Buy Now
+            </Button>
             <Button variant="outlined">Add to cart</Button>
             <Button
               variant="outlined"
-              startIcon={
-                isInReadingList ? <BookmarkIcon /> : <BookmarkBorderIcon />
-              }
+              startIcon={isAdded ? <BookmarkIcon /> : <BookmarkBorderIcon />}
               onClick={handleAddToReadingList}
               className="reading-list-btn"
               sx={{
-                borderColor: isInReadingList
-                  ? "#1976d2"
-                  : "rgba(0, 0, 0, 0.23)",
-                color: isInReadingList ? "#1976d2" : "rgba(0, 0, 0, 0.87)",
+                borderColor: isAdded ? "#1976d2" : "rgba(0, 0, 0, 0.23)",
+                color: isAdded ? "#1976d2" : "rgba(0, 0, 0, 0.87)",
                 "&:hover": {
                   borderColor: "#1976d2",
-                  backgroundColor: isInReadingList
+                  backgroundColor: isAdded
                     ? "rgba(25, 118, 210, 0.08)"
                     : "transparent",
                 },
               }}
             >
-              {isInReadingList ? "In Reading List" : "Add to Reading List"}
+              {isAdded ? "In Reading List" : "Add to Reading List"}
             </Button>
           </div>
 
@@ -582,6 +575,7 @@ function BookDetail() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 }
