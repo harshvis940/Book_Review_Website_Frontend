@@ -79,29 +79,16 @@ function BestSellingBooks() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      try {
-        const text = await res.text();
-        console.log(text);
-        const response = await res.json();
-        console.log(res);
-        if (response && response.data && Array.isArray(response.data)) {
-          // Filter out any books with incomplete/invalid image data
-          const validBooks = response.data.filter((book) => {
-            if (!book.coverImageURL) return true; // Allow books without images
-            // Check if base64 is complete (basic validation)
-            return book.coverImageURL.length > 100; // Adjust this threshold
-          });
+      const response = await res.json(); // ✅ Direct JSON parsing
+      console.log("Parsed response:", response);
 
-          setBooks(validBooks);
-        } else {
-          setBooks([]);
-        }
-      } catch (parseError) {
-        console.error("JSON Parse Error - Response too large or malformed");
-        setBooks([]); // Will use dummy data
+      if (response && response.data && Array.isArray(response.data)) {
+        setBooks(response.data);
+      } else {
+        setBooks([]);
       }
     } catch (error) {
-      console.error("Network Error:", error);
+      console.error("Error fetching books:", error);
       setBooks([]);
     } finally {
       setIsLoading(false);
@@ -167,7 +154,7 @@ function BestSellingBooks() {
             onClick={() => handleBookClick(book)}
           >
             <img
-              src={getImageSrc(book.coverImageURL)}
+              src={getImageSrc(book.coverImageUrl)}
               alt={book.title}
               className="w-60 h-80 mt-3 object-center ` shadow-md z-10 flex justify-self-center"
               onError={(e) => {
@@ -176,7 +163,7 @@ function BestSellingBooks() {
                   "https://s3.ap-south-1.amazonaws.com/storage.commonfolks.in/docs/products/images_full/the-power-of-your-subconscious-mind-pen-bird_FrontImage_335.gif";
               }}
             />
-            <div className="text-sm text-center space-y-1 mt-2 mb-2">
+            <div className="text-sm text-center space-y-1 mt-2 mb-2 hover:cursor-pointer">
               <h2 className="text-lg font-bold">
                 {book.title || "Title Not Available"}
               </h2>

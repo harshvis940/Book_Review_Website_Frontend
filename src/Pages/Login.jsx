@@ -49,8 +49,11 @@ function Login() {
         throw new Error(data.message || "Login failed");
       }
       localStorage.setItem("token", data.data.token);
+      localStorage.setItem("role", data.data.role);
       toast.success("Login successful!");
-      setTimeout(() => navigate("/dashboard"), 1500); // Navigate after toast
+      data.data.role === "ADMIN"
+        ? setTimeout(() => navigate("/admin"), 1500)
+        : setTimeout(() => navigate("/dashboard"), 1500); // Navigate after toast
     } catch (err) {
       toast.error(err.message || "Something went wrong. Please try again.");
     } finally {

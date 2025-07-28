@@ -64,23 +64,30 @@ function NewBooks() {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
       });
-      if (res.ok) {
-        const response = await res.json();
-        console.log("Fetched books:", response);
-        // Extract the data array from the response object
-        setBooks(response.data || []);
-      } else {
-        console.log("Error");
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
-    } catch (err) {
-      console.log("Error fetching books:", err);
+
+      // ✅ FIXED: Use only res.json(), not both res.text() and res.json()
+      const response = await res.json();
+      console.log("Parsed response:", response);
+
+      if (response && response.data && Array.isArray(response.data)) {
+        setBooks(response.data);
+      } else {
+        setBooks([]);
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      setBooks([]);
     } finally {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchNewlyAddedBook();
   }, []);

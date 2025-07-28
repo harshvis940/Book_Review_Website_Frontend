@@ -26,7 +26,14 @@ function App() {
         />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/bookDetail" element={<BookDetail />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoutes>
+              <AdminDashboard />
+            </ProtectedRoutes>
+          }
+        />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/goals" element={<Goals />} />
       </Routes>
