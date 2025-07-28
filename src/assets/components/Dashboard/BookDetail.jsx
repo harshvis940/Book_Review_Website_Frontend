@@ -6,7 +6,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import Snackbar from "@mui/material/Snackbar";
+import Rating from "@mui/material/Rating";
 import { getImageSrc } from "../../../static/DefaultExports";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -25,9 +25,7 @@ function BookDetail() {
   const [reviews, setReviews] = useState([]);
   const [newReviewText, setNewReviewText] = useState("");
   const [userRating, setUserRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [isReplyOpen, setIsReplyOpen] = useState(false);
-  const [replyText, setReplyText] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const [reviewInteractions, setReviewInteractions] = useState({});
   const [replyStates, setReplyStates] = useState({});
@@ -36,68 +34,277 @@ function BookDetail() {
   const dispatch = useDispatch();
   const allBooksObj = useSelector((state) => state.cart.items);
   const [isAdded, setIsAdded] = useState(false);
-  // console.log(book);
+
+  // Fetch reviews from API
+  const fetchReviews = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8080/review/book/${book.id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          setReviews(data.data);
+        }
+      } else {
+        console.error("Failed to fetch reviews");
+        // Use dummy data as fallback
+        setDummyReviews();
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setDummyReviews();
+    }
+  };
+
+  // Set dummy reviews as fallback
+  const setDummyReviews = () => {
+    const dummyReviews = [
+      {
+        id: 1,
+        userId: "user1",
+        userName: "Bisola",
+        rating: 5,
+        reviewText:
+          "This book completely changed my perspective! The writing style is engaging and the concepts are presented in a very accessible way. I couldn't put it down once I started reading.",
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        likes: 12,
+        dislikes: 2,
+        replies: [
+          {
+            id: 1,
+            userId: "user2",
+            userName: "John",
+            replyText: "I completely agree! This book is amazing.",
+            createdAt: new Date(Date.now() - 43200000).toISOString(),
+          },
+        ],
+      },
+      {
+        id: 2,
+        userId: "user2",
+        userName: "John Smith",
+        rating: 4,
+        reviewText:
+          "Great book with valuable insights. Some parts were a bit repetitive, but overall a solid read. Would recommend to anyone interested in the topic.",
+        createdAt: new Date(Date.now() - 172800000).toISOString(),
+        likes: 8,
+        dislikes: 1,
+        replies: [],
+      },
+      {
+        id: 3,
+        userId: "user3",
+        userName: "Sarah Wilson",
+        rating: 5,
+        reviewText:
+          "Absolutely loved this book! The author's expertise really shows through. Each chapter builds upon the previous one perfectly. This is definitely going on my favorites list.",
+        createdAt: new Date(Date.now() - 259200000).toISOString(),
+        likes: 15,
+        dislikes: 0,
+        replies: [],
+      },
+    ];
+    setReviews(dummyReviews);
+  };
+
+  // Submit new review
+  const handleSubmitReview = async () => {
+    if (!newReviewText.trim() || userRating === 0) {
+      toast.error("Please provide both rating and review text");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+
+      const reviewData = {
+        bookId: book.id,
+        userId: userId,
+        rating: userRating,
+        reviewText: newReviewText.trim(),
+      };
+
+      const response = await fetch("http://localhost:8080/review/create", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success("Review submitted successfully!");
+        setNewReviewText("");
+        setUserRating(0);
+        // Refresh reviews
+        fetchReviews();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to submit review");
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("Error submitting review");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Submit reply to a review
+  const handleReplySubmit = async (reviewId, reviewIndex) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("Please login to reply");
+      return;
+    }
+
+    const replyText = replyTexts[reviewIndex];
+    if (!replyText || !replyText.trim()) {
+      toast.error("Please write a reply");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const replyData = {
+        reviewId: reviewId,
+        userId: userId,
+        replyText: replyText.trim(),
+      };
+
+      const response = await fetch("http://localhost:8080/review/reply", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(replyData),
+      });
+
+      if (response.ok) {
+        toast.success("Reply posted successfully!");
+        // Clear reply text and close reply box
+        setReplyTexts((prev) => ({
+          ...prev,
+          [reviewIndex]: "",
+        }));
+        setReplyStates((prev) => ({
+          ...prev,
+          [reviewIndex]: false,
+        }));
+        // Refresh reviews to show new reply
+        fetchReviews();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to post reply");
+      }
+    } catch (error) {
+      console.error("Error posting reply:", error);
+      toast.error("Error posting reply");
+    }
+  };
+
+  // Handle like/dislike functionality
+  const handleLikeDislike = async (reviewId, reviewIndex, action) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("Please login to like/dislike reviews");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:8080/review/${action}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reviewId: reviewId,
+          userId: userId,
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state for immediate feedback
+        setReviewInteractions((prev) => {
+          const current = prev[reviewIndex] || {
+            liked: false,
+            disliked: false,
+          };
+          const newState = { ...prev };
+
+          if (action === "like") {
+            if (current.liked) {
+              newState[reviewIndex] = {
+                liked: false,
+                disliked: current.disliked,
+              };
+            } else {
+              newState[reviewIndex] = { liked: true, disliked: false };
+            }
+          } else if (action === "dislike") {
+            if (current.disliked) {
+              newState[reviewIndex] = { liked: current.liked, disliked: false };
+            } else {
+              newState[reviewIndex] = { liked: false, disliked: true };
+            }
+          }
+
+          return newState;
+        });
+        // Refresh reviews to get updated counts
+        fetchReviews();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || `Failed to ${action} review`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing review:`, error);
+      toast.error(`Error ${action}ing review`);
+    }
+  };
 
   const handleAddToCart = () => {
     dispatch(addToCart(book));
   };
 
   const checkBookAdded = (allBooksObj) => {
-    console.log(allBooksObj);
     setBooks(allBooksObj);
     const existing = allBooksObj.filter((item) => book.id === item.id);
     if (existing.length > 0) {
       setIsAdded(true);
     }
-    console.log(existing);
   };
-  useEffect(() => {
-    checkBookAdded(allBooksObj);
-  }, []);
 
   const handleAddToReadingList = () => {
     try {
       dispatch(addToCart(book));
       toast.success("Book added successfully!");
-      console.log("Done");
     } catch (err) {
-      alert("Error adding book");
-      toast.error(err);
+      toast.error("Error adding book");
     }
   };
 
-  // Handle reply functionality
   const handleReplyClick = (reviewIndex) => {
-    // Remove this line: setIsReplyOpen(true);
     setReplyStates((prev) => ({
       ...prev,
       [reviewIndex]: !prev[reviewIndex],
-    }));
-  };
-
-  const handleReplySubmit = (reviewIndex) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      alert("Please login to reply");
-      return;
-    }
-
-    const replyText = replyTexts[reviewIndex];
-    if (!replyText || !replyText.trim()) {
-      alert("Please write a reply");
-      return;
-    }
-
-    alert("Reply posted successfully!");
-
-    // Clear reply text and close reply box
-    setReplyTexts((prev) => ({
-      ...prev,
-      [reviewIndex]: "",
-    }));
-    setReplyStates((prev) => ({
-      ...prev,
-      [reviewIndex]: false,
     }));
   };
 
@@ -108,178 +315,51 @@ function BookDetail() {
     }));
   };
 
-  useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (userId && book?.id) {
-      const readingList = JSON.parse(
-        localStorage.getItem(`readingList_${userId}`) || "[]"
-      );
-      setIsInReadingList(readingList.some((item) => item.id === book.id));
-    }
-  }, [book]);
-
-  useEffect(() => {
-    const bookId = book?.id;
-    if (bookId) {
-      const savedReviews = localStorage.getItem(`reviews_${bookId}`);
-      if (savedReviews) {
-        setReviews(JSON.parse(savedReviews));
-      } else {
-        // Default reviews
-        const defaultReviews = [
-          {
-            id: 1,
-            name: "Bisola",
-            rating: 5,
-            stars: "⭐️⭐️⭐️⭐️⭐️",
-            reviews:
-              "This book completely changed my perspective! The writing style is engaging and the concepts are presented in a very accessible way. I couldn't put it down once I started reading.",
-            userId: "user1",
-            timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-            likes: 12,
-            dislikes: 2,
-            likedBy: [],
-            dislikedBy: [],
-          },
-          {
-            id: 2,
-            name: "John Smith",
-            rating: 4,
-            stars: "⭐️⭐️⭐️⭐️",
-            reviews:
-              "Great book with valuable insights. Some parts were a bit repetitive, but overall a solid read. Would recommend to anyone interested in the topic.",
-            userId: "user2",
-            timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-            likes: 8,
-            dislikes: 1,
-            likedBy: [],
-            dislikedBy: [],
-          },
-          {
-            id: 3,
-            name: "Sarah Wilson",
-            rating: 5,
-            stars: "⭐️⭐️⭐️⭐️⭐️",
-            reviews:
-              "Absolutely loved this book! The author's expertise really shows through. Each chapter builds upon the previous one perfectly. This is definitely going on my favorites list.",
-            userId: "user3",
-            timestamp: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-            likes: 15,
-            dislikes: 0,
-            likedBy: [],
-            dislikedBy: [],
-          },
-        ];
-        setReviews(defaultReviews);
-        localStorage.setItem(
-          `reviews_${bookId}`,
-          JSON.stringify(defaultReviews)
-        );
-      }
-    }
-  }, [book]);
-
-  const review = [
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-    {
-      name: "Bisola",
-      stars: "⭐️⭐️⭐️⭐️⭐️",
-      reviews:
-        "fsffsafsasafffsffasfafsafasfiuasyfaysfuiysiauyfaisufyyasufiaysuifuyisauysfaiusyfasiufsfuyiasyuiaysfuyiasfuiysfasfaiyusfuyisfayuisfuiyafsy",
-    },
-  ];
-
-  const bookDescription = [
-    {
-      Format: "Paper Black",
-    },
-    {
-      ISBN: book.isbn,
-    },
-    {
-      Pages: "580",
-    },
-    {
-      "Reading Time": "2 Hours",
-    },
-    {
-      Dimension: "243x120nm",
-    },
-    {
-      Published: book.publicationYear,
-    },
-    {
-      Genre: book.genres,
-    },
-  ];
-
-  const handleLikeDislike = (reviewIndex, action) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      alert("Please login to like/dislike reviews");
-      return;
-    }
-
-    setReviewInteractions((prev) => {
-      const current = prev[reviewIndex] || { liked: false, disliked: false };
-      const newState = { ...prev };
-
-      if (action === "like") {
-        if (current.liked) {
-          // Remove like
-          newState[reviewIndex] = { liked: false, disliked: current.disliked };
-        } else {
-          // Add like, remove dislike if exists
-          newState[reviewIndex] = { liked: true, disliked: false };
-        }
-      } else if (action === "dislike") {
-        if (current.disliked) {
-          // Remove dislike
-          newState[reviewIndex] = { liked: current.liked, disliked: false };
-        } else {
-          // Add dislike, remove like if exists
-          newState[reviewIndex] = { liked: false, disliked: true };
-        }
-      }
-
-      return newState;
+  // Format date helper
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
+
+  // Generate star rating display
+  const getStarDisplay = (rating) => {
+    return "⭐".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
+  };
+
+  // Calculate average rating
+  const calculateAverageRating = () => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return (sum / reviews.length).toFixed(1);
+  };
+
+  useEffect(() => {
+    checkBookAdded(allBooksObj);
+  }, [allBooksObj]);
+
+  useEffect(() => {
+    if (book?.id) {
+      fetchReviews();
+    }
+  }, [book]);
+
+  const bookDescription = [
+    { Format: "Paper Back" },
+    { ISBN: book?.isbn || "N/A" },
+    { Pages: "580" },
+    { "Reading Time": "2 Hours" },
+    { Dimension: "243x120mm" },
+    { Published: book?.publicationYear || "N/A" },
+    {
+      Genre: Array.isArray(book?.genres)
+        ? book.genres.join(", ")
+        : book?.genres || "N/A",
+    },
+  ];
 
   return (
     <>
@@ -332,7 +412,6 @@ function BookDetail() {
           .dislike-btn:hover {
             background-color: #ffebee;
           }
-
         `}
       </style>
       <NavBar />
@@ -347,15 +426,29 @@ function BookDetail() {
         </div>
 
         {/* Right: Book Details (60%) - Scrollable */}
-        <div className=" w-full flex flex-col h-screen overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div className="w-full flex flex-col h-screen overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className="mt-10">
-            <h1 className="text-4xl font-bold mb-6 px-5">{book.title}</h1>
-            <p className="text-xl mb-2 px-5">Author: {book.authors}</p>
-            <p className="text-xl mb-2 px-5">Genre: {book.genres}</p>
+            <h1 className="text-4xl font-bold mb-6 px-5">{book?.title}</h1>
+            <p className="text-xl mb-2 px-5">
+              Author:{" "}
+              {Array.isArray(book?.authors)
+                ? book.authors.join(", ")
+                : book?.authors || "Unknown"}
+            </p>
+            <p className="text-xl mb-2 px-5">
+              Genre:{" "}
+              {Array.isArray(book?.genres)
+                ? book.genres.join(", ")
+                : book?.genres || "N/A"}
+            </p>
             <p className="text-xl mb-2 px-5">Price: ₹499</p>
-            <p className="text-xl mb-6 px-5">Rating: ⭐⭐⭐⭐☆</p>
+            <p className="text-xl mb-6 px-5">
+              Rating:{" "}
+              {getStarDisplay(book?.averageRating || calculateAverageRating())}(
+              {calculateAverageRating()})
+            </p>
             <p id="demo-radio-buttons-group-label" className="px-5">
-              Choose prefered format
+              Choose preferred format
             </p>
           </div>
 
@@ -373,6 +466,7 @@ function BookDetail() {
             />
             <FormControlLabel value="Ebook" control={<Radio />} label="Ebook" />
           </RadioGroup>
+
           <div className="w-150 mt-5 flex flex-row gap-5 px-5">
             <Button onClick={handleAddToCart} variant="contained">
               Buy Now
@@ -400,30 +494,7 @@ function BookDetail() {
 
           <p className="mt-10 text-xl px-5">Book summary</p>
           <p className="mt-3 px-5 text-justify">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Animi
-            vitae adipisci reprehenderit omnis hic quo fugiat ipsa ipsam enim
-            maxime id commodi dolor earum perferendis blanditiis quasi nostrum
-            ex, laudantium deserunt unde libero explicabo? Placeat, blanditiis
-            praesentium omnis amet porro inventore. Amet aperiam ipsa voluptatum
-            nostrum vel iure, eaque deserunt accusantium dolores velit
-            laboriosam impedit ea sunt autem odio! Omnis totam iusto, eius ipsam
-            saepe labore molestias veniam qui ipsum, veritatis dolore nihil
-            rerum repellat, asperiores corporis ratione quos. Ab nesciunt
-            nostrum, eum minus possimus eaque animi et doloremque earum harum
-            magnam ut minima. Sequi placeat optio dolores, nisi architecto quod!
-            Doloremque, cum quibusdam beatae quae tenetur ullam odit molestiae,
-            sunt, corrupti odio earum quas? Amet eaque a explicabo nesciunt
-            quam. Deleniti voluptatibus aliquid sint ipsa ab consequuntur,
-            voluptatum, voluptates a dignissimos voluptatem totam ea ipsam earum
-            architecto assumenda laborum inventore eius porro cumque vel impedit
-            eveniet nihil rerum molestias. Soluta quod vitae sint omnis beatae
-            architecto, consectetur voluptates explicabo aperiam eum fugiat
-            fugit, aspernatur tenetur laboriosam magni amet, aliquam quidem iure
-            dicta natus dolorum repudiandae laborum! Obcaecati voluptatibus sed
-            ratione reprehenderit odio placeat eum eligendi adipisci saepe,
-            cumque debitis et numquam cupiditate iure dicta nemo magni!
-            Doloribus, distinctio id.
-            {book.summary}
+            {book?.summary || "No summary available for this book."}
           </p>
 
           <p className="mt-10 text-xl font-semibold px-5">Book Description</p>
@@ -443,134 +514,246 @@ function BookDetail() {
           <div className="bg-zinc-100 mt-2 px-5 py-3">
             <p className="text-xl font-bold">Reviews</p>
             <p className="mb-3 text-sm">
-              See what people think about Tile of the book
+              See what people think about {book?.title}
             </p>
 
             <div className="flex flex-row gap-3">
-              <p>4.0</p>
-              <p>⭐️⭐️⭐️⭐️⭐️</p>
+              <p>{calculateAverageRating()}</p>
+              <p>{getStarDisplay(calculateAverageRating())}</p>
             </div>
-            <p>40 reviews/28 ratings</p>
-            <p className="mt-3">What would you rate this book</p>
-            <p>⭐️⭐️⭐️⭐️⭐️</p>
+            <p>{reviews.length} reviews</p>
 
-            <p className="mt-3">Tell us what do you think</p>
-            <textarea
-              className="border-1 w-100 p-3 rounded-md"
-              name=""
-              id=""
-              placeholder="Write review"
-            ></textarea>
-            <div className="bg-white w-30 p-3 text-center rounded-md">
-              <p className="hover:cursor-pointer">Post</p>
+            {/* Add Review Section */}
+            <div className="mt-6 bg-white p-4 rounded-md">
+              <p className="text-lg font-semibold mb-3">Write a Review</p>
+
+              <div className="mb-3">
+                <p className="mb-2">Rate this book:</p>
+                <Rating
+                  name="user-rating"
+                  value={userRating}
+                  onChange={(event, newValue) => {
+                    setUserRating(newValue);
+                  }}
+                  size="large"
+                />
+              </div>
+
+              <div className="mb-3">
+                <p className="mb-2">Your Review:</p>
+                <textarea
+                  className="w-full border border-gray-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  rows="4"
+                  placeholder="Share your thoughts about this book..."
+                  value={newReviewText}
+                  onChange={(e) => setNewReviewText(e.target.value)}
+                />
+              </div>
+
+              <Button
+                variant="contained"
+                onClick={handleSubmitReview}
+                disabled={
+                  isSubmittingReview ||
+                  !newReviewText.trim() ||
+                  userRating === 0
+                }
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                {isSubmittingReview ? "Submitting..." : "Submit Review"}
+              </Button>
             </div>
-            <div className=" px-4 py-3">
-              {review.map((val, key) => {
-                const currentInteraction = reviewInteractions[key] || {
-                  liked: false,
-                  disliked: false,
-                };
-                return (
-                  <div key={key} className="mb-6">
-                    {" "}
-                    {/* Wrap each review and its reply in a container */}
-                    <div className="flex">
-                      <div className="m-auto">
-                        <SlOptionsVertical />
-                      </div>
-                      <div className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190">
-                        {/* Placeholder for avatar or icon */}
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-white">
-                          {val.name[0]}
+
+            {/* Reviews List */}
+            <div className="px-4 py-3">
+              {reviews.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No reviews yet. Be the first to review this book!</p>
+                </div>
+              ) : (
+                reviews.map((review, index) => {
+                  const currentInteraction = reviewInteractions[index] || {
+                    liked: false,
+                    disliked: false,
+                  };
+                  return (
+                    <div key={review.id} className="mb-6">
+                      <div className="flex">
+                        <div className="m-auto">
+                          <SlOptionsVertical />
                         </div>
+                        <div className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190 review-card">
+                          {/* User Avatar */}
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                            {(review.userName || review.userId || "U")
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
 
-                        {/* Review content */}
-                        <div className="flex flex-col flex-1 overflow-hidden">
-                          <p className="font-semibold">{val.name}</p>
-                          <p className="text-yellow-500">{val.stars}</p>
-                          <p className="text-gray-700 break-words whitespace-pre-wrap">
-                            {val.reviews}
-                          </p>
-                          <div className="text-xs mt-5 flex gap-5 items-center">
-                            <SlLike
-                              className="hover:cursor-pointer transition-colors duration-200"
-                              size={15}
-                              fill={
-                                currentInteraction.liked ? "#22c55e" : "#1976d2"
-                              }
-                              style={{
-                                color: currentInteraction.liked
-                                  ? "#22c55e"
-                                  : "#1976d2",
-                                opacity: currentInteraction.liked ? 1 : 0.7,
-                              }}
-                              onClick={() => handleLikeDislike(key, "like")}
-                            />
-                            <SlDislike
-                              className="hover:cursor-pointer transition-colors duration-200"
-                              size={15}
-                              fill={
-                                currentInteraction.disliked
-                                  ? "#ef4444"
-                                  : "#1976d2"
-                              }
-                              style={{
-                                color: currentInteraction.disliked
-                                  ? "#ef4444"
-                                  : "#1976d2",
-                                opacity: currentInteraction.disliked ? 1 : 0.7,
-                              }}
-                              onClick={() => handleLikeDislike(key, "dislike")}
-                            />
-                            <h1
-                              className="hover:cursor-pointer hover:text-blue-600 transition-colors duration-200"
-                              onClick={() => handleReplyClick(key)}
-                            >
-                              Reply
-                            </h1>
+                          {/* Review content */}
+                          <div className="flex flex-col flex-1 overflow-hidden">
+                            <div className="flex justify-between items-start mb-2">
+                              <p className="font-semibold">
+                                {review.userName || "Anonymous"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatDate(review.createdAt)}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center mb-2">
+                              <Rating
+                                value={review.rating}
+                                readOnly
+                                size="small"
+                              />
+                              <span className="ml-2 text-sm text-gray-600">
+                                ({review.rating}/5)
+                              </span>
+                            </div>
+
+                            <p className="text-gray-700 break-words whitespace-pre-wrap mb-3">
+                              {review.reviewText}
+                            </p>
+
+                            {/* Like/Dislike/Reply buttons */}
+                            <div className="flex gap-5 items-center text-xs">
+                              <div className="flex items-center gap-1">
+                                <SlLike
+                                  className="hover:cursor-pointer transition-colors duration-200 like-btn p-1 rounded"
+                                  size={15}
+                                  fill={
+                                    currentInteraction.liked
+                                      ? "#22c55e"
+                                      : "#6b7280"
+                                  }
+                                  style={{
+                                    color: currentInteraction.liked
+                                      ? "#22c55e"
+                                      : "#6b7280",
+                                  }}
+                                  onClick={() =>
+                                    handleLikeDislike(review.id, index, "like")
+                                  }
+                                />
+                                <span className="text-gray-600">
+                                  {review.likes || 0}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                <SlDislike
+                                  className="hover:cursor-pointer transition-colors duration-200 dislike-btn p-1 rounded"
+                                  size={15}
+                                  fill={
+                                    currentInteraction.disliked
+                                      ? "#ef4444"
+                                      : "#6b7280"
+                                  }
+                                  style={{
+                                    color: currentInteraction.disliked
+                                      ? "#ef4444"
+                                      : "#6b7280",
+                                  }}
+                                  onClick={() =>
+                                    handleLikeDislike(
+                                      review.id,
+                                      index,
+                                      "dislike"
+                                    )
+                                  }
+                                />
+                                <span className="text-gray-600">
+                                  {review.dislikes || 0}
+                                </span>
+                              </div>
+
+                              <button
+                                className="hover:cursor-pointer hover:text-blue-600 transition-colors duration-200 text-gray-600"
+                                onClick={() => handleReplyClick(index)}
+                              >
+                                Reply ({review.replies?.length || 0})
+                              </button>
+                            </div>
+
+                            {/* Show existing replies */}
+                            {review.replies && review.replies.length > 0 && (
+                              <div className="mt-3 pl-4 border-l-2 border-gray-200">
+                                {review.replies.map((reply, replyIndex) => (
+                                  <div
+                                    key={reply.id}
+                                    className="mb-2 p-2 bg-gray-50 rounded"
+                                  >
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                                        {(reply.userName || reply.userId || "U")
+                                          .charAt(0)
+                                          .toUpperCase()}
+                                      </div>
+                                      <span className="text-sm font-medium">
+                                        {reply.userName || "Anonymous"}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {formatDate(reply.createdAt)}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 pl-8">
+                                      {reply.replyText}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Reply box appears below the review card */}
-                    {replyStates[key] && (
-                      <div className="reply-box ml-16 mr-4 bg-gray-50 p-4 rounded-md border-l-4 border-blue-400 mt-2">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">
-                            {localStorage.getItem("userName")?.charAt(0) || "U"}
-                          </div>
-                          <div className="flex-1">
-                            <textarea
-                              className="w-full border border-gray-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                              rows="3"
-                              placeholder={`Reply to ${val.name}...`}
-                              value={replyTexts[key] || ""}
-                              onChange={(e) =>
-                                handleReplyTextChange(key, e.target.value)
-                              }
-                            />
-                            <div className="flex gap-2 mt-2">
-                              <button
-                                className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors duration-200"
-                                onClick={() => handleReplySubmit(key)}
-                                disabled={!(replyTexts[key] || "").trim()}
-                              >
-                                Post Reply
-                              </button>
-                              <button
-                                className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400 transition-colors duration-200"
-                                onClick={() => handleReplyClick(key)}
-                              >
-                                Cancel
-                              </button>
+
+                      {/* Reply box */}
+                      {replyStates[index] && (
+                        <div className="reply-box ml-16 mr-4 bg-gray-50 p-4 rounded-md border-l-4 border-blue-400 mt-2">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">
+                              {(localStorage.getItem("userName") || "U")
+                                .charAt(0)
+                                .toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <textarea
+                                className="w-full border border-gray-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                                rows="3"
+                                placeholder={`Reply to ${
+                                  review.userName || "this review"
+                                }...`}
+                                value={replyTexts[index] || ""}
+                                onChange={(e) =>
+                                  handleReplyTextChange(index, e.target.value)
+                                }
+                              />
+                              <div className="flex gap-2 mt-2">
+                                <button
+                                  className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
+                                  onClick={() =>
+                                    handleReplySubmit(review.id, index)
+                                  }
+                                  disabled={!(replyTexts[index] || "").trim()}
+                                >
+                                  Post Reply
+                                </button>
+                                <button
+                                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400 transition-colors duration-200"
+                                  onClick={() => handleReplyClick(index)}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

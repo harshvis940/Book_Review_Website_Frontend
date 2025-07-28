@@ -6,6 +6,8 @@ import { CiShoppingCart, CiUser } from "react-icons/ci";
 import TopNav from "../../static/TopNav";
 import SettingsModal from "./SettingsModal";
 import { useNavigate } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function NavBar({ btnText, admin }) {
   const [settings, setSettingsModal] = useState(false);
@@ -18,8 +20,11 @@ function NavBar({ btnText, admin }) {
   };
 
   const handleAdminClick = () => {
+    const role = localStorage.getItem("role");
     btnText === "admin"
-      ? navigate("/admin", { replace: true })
+      ? role === "ADMIN"
+        ? navigate("/admin", { replace: true })
+        : toast.error("Access Denied")
       : navigate("/dashboard", { replace: true });
   };
 
@@ -115,6 +120,7 @@ function NavBar({ btnText, admin }) {
       {settings && (
         <SettingsModal admin={admin} handleClick={handleSettingsClick} />
       )}
+      <ToastContainer />
     </>
   );
 }
