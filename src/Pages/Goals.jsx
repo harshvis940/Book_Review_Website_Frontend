@@ -17,7 +17,7 @@ function Goals() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [visible, setVisile] = useState(false);
-  const cartItems = useSelector((state) => state.cart.items);
+  const cartItems = useSelector((state) => state.list.books);
   console.log(cartItems);
   useEffect(() => {
     setTimeout(() => setVisile(true), 50);
@@ -177,7 +177,7 @@ function Goals() {
                   >
                     <div className="relative">
                       <img
-                        src={getImageSrc(book.coverImageURL)}
+                        src={getImageSrc(book.coverImageUrl)}
                         alt={book.title}
                         className="w-full h-80 object-cover"
                         onError={(e) => {

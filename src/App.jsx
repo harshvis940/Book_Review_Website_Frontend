@@ -9,6 +9,7 @@ import ProtectedRoutes from "./assets/components/Authorization/ProtectedRoutes";
 import AdminDashboard from "./assets/components/Admin/AdminDashboard";
 import ExplorePage from "./Pages/ExplorePage";
 import Goals from "./Pages/Goals";
+import CartPage from "./Pages/CartPage";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/goals" element={<Goals />} />
+        <Route path="cart" element={<CartPage />} />
       </Routes>
     </BrowserRouter>
   );

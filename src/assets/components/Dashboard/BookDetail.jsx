@@ -17,6 +17,7 @@ import { addToCart, removeFromCart } from "../../Redux/cartSlice";
 import NavBar from "../NavBar";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { addToList, removeFromList } from "../../Redux/readingListSlice";
 
 function BookDetail() {
   const location = useLocation();
@@ -32,9 +33,11 @@ function BookDetail() {
   const [replyTexts, setReplyTexts] = useState({});
   const [allBooks, setBooks] = useState([]);
   const dispatch = useDispatch();
-  const allBooksObj = useSelector((state) => state.cart.items);
+  const readingListBooks = useSelector((state) => state.list.books);
+  const cartBooks = useSelector((state) => state.cart.items);
   const [isAdded, setIsAdded] = useState(false);
 
+  console.log(readingListBooks);
   // Fetch reviews from API
   const fetchReviews = async () => {
     try {
@@ -275,7 +278,27 @@ function BookDetail() {
   };
 
   const handleAddToCart = () => {
+    try {
+      dispatch(addToCart(book));
+      toast.success("Book added to cart!", {
+        position: "bottom-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        icon: "🛒",
+      });
+    } catch (err) {
+      toast.error("Error adding book to cart");
+    }
+  };
+
+  const isInCart = cartBooks.some((item) => item.id === book?.id);
+
+  const handleBuyNow = () => {
     dispatch(addToCart(book));
+    navigate("/cart");
   };
 
   const checkBookAdded = (allBooksObj) => {
@@ -288,12 +311,12 @@ function BookDetail() {
 
   const handleAddToReadingList = () => {
     if (isAdded) {
-      dispatch(removeFromCart(book));
+      dispatch(removeFromList(book));
       setIsAdded(false);
       toast.success("Book removed successfully!");
     } else {
       try {
-        dispatch(addToCart(book));
+        dispatch(addToList(book));
         toast.success("Book added successfully!");
       } catch (err) {
         toast.error("Error adding book");
@@ -338,8 +361,8 @@ function BookDetail() {
   };
 
   useEffect(() => {
-    checkBookAdded(allBooksObj);
-  }, [allBooksObj]);
+    checkBookAdded(readingListBooks);
+  }, [readingListBooks]);
 
   useEffect(() => {
     if (book?.id) {
@@ -468,10 +491,16 @@ function BookDetail() {
           </RadioGroup>
 
           <div className="w-150 mt-5 flex flex-row gap-5 px-5">
-            <Button onClick={handleAddToCart} variant="contained">
+            <Button onClick={handleBuyNow} variant="contained">
               Buy Now
             </Button>
-            <Button variant="outlined">Add to cart</Button>
+            <Button
+              variant="outlined"
+              onClick={handleAddToCart}
+              disabled={isInCart}
+            >
+              {isInCart ? "In Cart" : "Add to Cart"}
+            </Button>
             <Button
               variant="outlined"
               startIcon={isAdded ? <BookmarkIcon /> : <BookmarkBorderIcon />}
