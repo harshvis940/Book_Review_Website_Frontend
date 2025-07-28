@@ -13,7 +13,7 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { SlOptionsVertical } from "react-icons/sl";
 import { SlLike, SlDislike } from "react-icons/sl";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../Redux/cartSlice";
+import { addToCart, removeFromCart } from "../../Redux/cartSlice";
 import NavBar from "../NavBar";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -66,7 +66,6 @@ function BookDetail() {
     }
   };
 
-  // Set dummy reviews as fallback
   const setDummyReviews = () => {
     const dummyReviews = [
       {
@@ -117,7 +116,6 @@ function BookDetail() {
     setReviews(dummyReviews);
   };
 
-  // Submit new review
   const handleSubmitReview = async () => {
     if (!newReviewText.trim() || userRating === 0) {
       toast.error("Please provide both rating and review text");
@@ -150,7 +148,6 @@ function BookDetail() {
         toast.success("Review submitted successfully!");
         setNewReviewText("");
         setUserRating(0);
-        // Refresh reviews
         fetchReviews();
       } else {
         const errorData = await response.json();
@@ -164,7 +161,6 @@ function BookDetail() {
     }
   };
 
-  // Submit reply to a review
   const handleReplySubmit = async (reviewId, reviewIndex) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -218,7 +214,6 @@ function BookDetail() {
     }
   };
 
-  // Handle like/dislike functionality
   const handleLikeDislike = async (reviewId, reviewIndex, action) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -241,7 +236,6 @@ function BookDetail() {
       });
 
       if (response.ok) {
-        // Update local state for immediate feedback
         setReviewInteractions((prev) => {
           const current = prev[reviewIndex] || {
             liked: false,
@@ -293,11 +287,17 @@ function BookDetail() {
   };
 
   const handleAddToReadingList = () => {
-    try {
-      dispatch(addToCart(book));
-      toast.success("Book added successfully!");
-    } catch (err) {
-      toast.error("Error adding book");
+    if (isAdded) {
+      dispatch(removeFromCart(book));
+      setIsAdded(false);
+      toast.success("Book removed successfully!");
+    } else {
+      try {
+        dispatch(addToCart(book));
+        toast.success("Book added successfully!");
+      } catch (err) {
+        toast.error("Error adding book");
+      }
     }
   };
 

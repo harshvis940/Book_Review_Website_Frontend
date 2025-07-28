@@ -3,6 +3,7 @@ import { CiUser } from "react-icons/ci";
 import { FiSettings, FiLogOut } from "react-icons/fi";
 import { MdHelpOutline } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function SettingsModal({ admin }) {
   const navigate = useNavigate();
@@ -29,12 +30,71 @@ function SettingsModal({ admin }) {
     Help: "/help",
   };
 
+  const handleLogout = () => {
+    const confirmLogout = () => {
+      toast.dismiss(); // Dismiss confirmation toast
+
+      // Show logging out message
+      toast.info("Logging out...", {
+        position: "top-right",
+        autoClose: 1000,
+      });
+
+      setTimeout(() => {
+        // Clear storage
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userId");
+        sessionStorage.clear();
+
+        // Show success and navigate
+        toast.success("Logged out successfully!", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 500);
+      }, 500);
+    };
+
+    // Show confirmation toast
+    toast.warn(
+      <div>
+        <p className="mb-2">Are you sure you want to logout?</p>
+        <div className="flex gap-2">
+          <button
+            onClick={confirmLogout}
+            className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+          >
+            Yes, Logout
+          </button>
+          <button
+            onClick={() => toast.dismiss()}
+            className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>,
+      {
+        position: "top-center",
+        autoClose: false,
+        hideProgressBar: true,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: false,
+        closeButton: false,
+      }
+    );
+  };
+
   const handleClick = (e) => {
     const label = e.currentTarget.getAttribute("data-label");
 
     if (label === "Logout") {
-      localStorage.removeItem("token");
-      navigate("/");
+      handleLogout();
       return;
     }
 
