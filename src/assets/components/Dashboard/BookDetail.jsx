@@ -7,7 +7,7 @@ import Radio from "@mui/material/Radio";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Rating from "@mui/material/Rating";
-import { getImageSrc } from "../../../static/DefaultExports";
+import { API_BASE_URL, getImageSrc } from "../../../static/DefaultExports";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { SlOptionsVertical } from "react-icons/sl";
@@ -42,19 +42,17 @@ function BookDetail() {
   const fetchReviews = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:8080/review/book/${book.id}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/review/get?id=${book.id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         if (data.data && Array.isArray(data.data)) {
           setReviews(data.data);
         }
@@ -119,6 +117,7 @@ function BookDetail() {
     setReviews(dummyReviews);
   };
 
+  //Submit Book Review
   const handleSubmitReview = async () => {
     if (!newReviewText.trim() || userRating === 0) {
       toast.error("Please provide both rating and review text");
@@ -133,8 +132,8 @@ function BookDetail() {
       const reviewData = {
         bookId: book.id,
         userId: userId,
-        rating: userRating,
-        reviewText: newReviewText.trim(),
+        value: userRating,
+        content: newReviewText.trim(),
       };
 
       const response = await fetch("http://localhost:8080/review/create", {
@@ -148,6 +147,7 @@ function BookDetail() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         toast.success("Review submitted successfully!");
         setNewReviewText("");
         setUserRating(0);
@@ -165,6 +165,7 @@ function BookDetail() {
   };
 
   const handleReplySubmit = async (reviewId, reviewIndex) => {
+    console.log(reviewId);
     const userId = localStorage.getItem("userId");
     if (!userId) {
       toast.error("Please login to reply");
@@ -182,10 +183,12 @@ function BookDetail() {
       const replyData = {
         reviewId: reviewId,
         userId: userId,
-        replyText: replyText.trim(),
+        content: replyText.trim(),
+        parentCommentId: reviewId,
+        bookId: book.id,
       };
-
-      const response = await fetch("http://localhost:8080/review/reply", {
+      console.log(replyData);
+      const response = await fetch(`${API_BASE_URL}/comment/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -226,7 +229,7 @@ function BookDetail() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8080/review/${action}`, {
+      const response = await fetch(`${API_BASE_URL}/review/${action}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -606,7 +609,7 @@ function BookDetail() {
                     disliked: false,
                   };
                   return (
-                    <div key={review.id} className="mb-6">
+                    <div key={review.reviewId} className="mb-6">
                       <div className="flex">
                         <div className="m-auto">
                           <SlOptionsVertical />
@@ -614,7 +617,7 @@ function BookDetail() {
                         <div className="flex gap-4 mb-4 p-4 bg-white rounded-md shadow-sm w-190 review-card">
                           {/* User Avatar */}
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
-                            {(review.userName || review.userId || "U")
+                            {(review.username || review.userId || "U")
                               .charAt(0)
                               .toUpperCase()}
                           </div>
@@ -623,7 +626,7 @@ function BookDetail() {
                           <div className="flex flex-col flex-1 overflow-hidden">
                             <div className="flex justify-between items-start mb-2">
                               <p className="font-semibold">
-                                {review.userName || "Anonymous"}
+                                {review.username || "Anonymous"}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {formatDate(review.createdAt)}
@@ -662,7 +665,11 @@ function BookDetail() {
                                       : "#6b7280",
                                   }}
                                   onClick={() =>
-                                    handleLikeDislike(review.id, index, "like")
+                                    handleLikeDislike(
+                                      review.reviewId,
+                                      index,
+                                      "like"
+                                    )
                                   }
                                 />
                                 <span className="text-gray-600">
@@ -686,7 +693,7 @@ function BookDetail() {
                                   }}
                                   onClick={() =>
                                     handleLikeDislike(
-                                      review.id,
+                                      review.reviewId,
                                       index,
                                       "dislike"
                                     )
@@ -762,7 +769,7 @@ function BookDetail() {
                                 <button
                                   className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
                                   onClick={() =>
-                                    handleReplySubmit(review.id, index)
+                                    handleReplySubmit(review.reviewId, index)
                                   }
                                   disabled={!(replyTexts[index] || "").trim()}
                                 >

@@ -72,7 +72,6 @@ function NewBooks() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      // ✅ FIXED: Use only res.json(), not both res.text() and res.json()
       const response = await res.json();
       console.log("Parsed response:", response);
 
@@ -134,11 +133,10 @@ function NewBooks() {
             onClick={() => handleBookClick(book)}
           >
             <img
-              src={getImageSrc(book.coverImageURL)}
+              src={getImageSrc(book.coverImageUrl)}
               className="w-20 h-full object-center"
               alt={book.title}
               onError={(e) => {
-                // Fallback image if base64 fails to load
                 e.target.src =
                   "https://m.media-amazon.com/images/I/61kRkfsIMUL._UF1000,1000_QL80_.jpg";
               }}

@@ -50,6 +50,7 @@ function Login() {
       }
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("role", data.data.role);
+      localStorage.setItem("userId", data.data.id);
       toast.success("Login successful!");
       data.data.role === "ADMIN"
         ? setTimeout(() => navigate("/admin"), 1500)

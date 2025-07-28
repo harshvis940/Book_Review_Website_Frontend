@@ -96,7 +96,7 @@ function BestSellingBooks() {
   };
   useEffect(() => {
     fetchBestSellingBooks();
-    console.log(books);
+    console.log("Best Selling Books:", books);
   }, []);
 
   const getImageSrc = (coverImageURL) => {
@@ -104,7 +104,6 @@ function BestSellingBooks() {
       return "https://s3.ap-south-1.amazonaws.com/storage.commonfolks.in/docs/products/images_full/the-power-of-your-subconscious-mind-pen-bird_FrontImage_335.gif";
     }
 
-    // Check if it's already a complete URL
     if (
       coverImageURL.startsWith("http://") ||
       coverImageURL.startsWith("https://")
