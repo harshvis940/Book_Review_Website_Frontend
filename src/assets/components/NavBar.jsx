@@ -8,12 +8,24 @@ import SettingsModal from "./SettingsModal";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { Badge } from "@mui/material";
 
 function NavBar({ btnText, admin }) {
   const [settings, setSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
+
+  const cartItems = useSelector((state) => state.cart.items);
+  const cartItemCount = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
+  const handleCartClick = () => {
+    navigate("/cart");
+  };
 
   const handleSettingsClick = () => {
     setSettingsModal((prev) => !prev);
@@ -68,7 +80,15 @@ function NavBar({ btnText, admin }) {
             Switch to {btnText === "Reader" ? "Reader" : "Admin"}
           </Button>
 
-          {!admin && <CiShoppingCart size={30} />}
+          {!admin && (
+            <Badge badgeContent={cartItemCount} color="error">
+              <CiShoppingCart
+                size={30}
+                className="cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={handleCartClick}
+              />
+            </Badge>
+          )}
 
           {/* Reader sees notification icon */}
           {!admin && (
