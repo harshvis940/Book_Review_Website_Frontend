@@ -89,7 +89,7 @@ function AddAdminModal({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+      className="fixed inset-0 bg-zinc-200 bg-opacity-100 flex justify-center items-center z-50 "
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-lg shadow-lg w-96 max-w-md mx-4">
