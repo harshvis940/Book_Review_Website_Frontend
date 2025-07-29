@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../../static/DefaultExports";
 
 function BestSellingBooks() {
   const [books, setBooks] = useState([]);
@@ -67,7 +68,7 @@ function BestSellingBooks() {
 
   const fetchBestSellingBooks = async () => {
     try {
-      const res = await fetch("http://localhost:8080/book/getBestSeller", {
+      const res = await fetch(`${API_BASE_URL}/book/getBestSeller`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -79,7 +80,7 @@ function BestSellingBooks() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const response = await res.json(); // ✅ Direct JSON parsing
+      const response = await res.json();
       console.log("Parsed response:", response);
 
       if (response && response.data && Array.isArray(response.data)) {
@@ -171,7 +172,6 @@ function BestSellingBooks() {
                   ? book.authors.join(", ")
                   : "Unknown Author"}
               </h2>
-              <h2>{book.price ? `₹${book.price}` : "Price Not Available"}</h2>
               <h2>
                 {book.ratings && book.ratings.length > 0
                   ? `${book.ratings[0]} ratings`

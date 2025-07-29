@@ -22,7 +22,6 @@ import { addToList, removeFromList } from "../../Redux/readingListSlice";
 function BookDetail() {
   const location = useLocation();
   const book = location.state?.book;
-  const [isInReadingList, setIsInReadingList] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [newReviewText, setNewReviewText] = useState("");
   const [userRating, setUserRating] = useState(0);
@@ -38,7 +37,6 @@ function BookDetail() {
   const [isAdded, setIsAdded] = useState(false);
 
   console.log(readingListBooks);
-  // Fetch reviews from API
   const fetchReviews = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -117,7 +115,6 @@ function BookDetail() {
     setReviews(dummyReviews);
   };
 
-  //Submit Book Review
   const handleSubmitReview = async () => {
     if (!newReviewText.trim() || userRating === 0) {
       toast.error("Please provide both rating and review text");
@@ -136,7 +133,7 @@ function BookDetail() {
         content: newReviewText.trim(),
       };
 
-      const response = await fetch("http://localhost:8080/review/create", {
+      const response = await fetch(`${API_BASE_URL}/review/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -316,11 +313,11 @@ function BookDetail() {
     if (isAdded) {
       dispatch(removeFromList(book));
       setIsAdded(false);
-      toast.success("Book removed successfully!");
+      toast.success("Book removed from reading list successfully!");
     } else {
       try {
         dispatch(addToList(book));
-        toast.success("Book added successfully!");
+        toast.success("Book added to reading list successfully!");
       } catch (err) {
         toast.error("Error adding book");
       }
@@ -351,12 +348,10 @@ function BookDetail() {
     });
   };
 
-  // Generate star rating display
   const getStarDisplay = (rating) => {
     return "⭐".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
   };
 
-  // Calculate average rating
   const calculateAverageRating = () => {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);

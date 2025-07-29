@@ -26,15 +26,6 @@ function ExplorePage() {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Filter states
-  const [selectedGenres, setSelectedGenres] = useState([]);
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [minRating, setMinRating] = useState(0);
-  const [sortBy, setSortBy] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
-
   const navigate = useNavigate();
   const [visible, setVisile] = useState(false);
 
@@ -66,11 +57,9 @@ function ExplorePage() {
     fetchAllBooks();
   }, []);
 
-  // Filter and search logic
   useEffect(() => {
     let filtered = [...books];
 
-    // Search filter
     if (searchQuery.trim() !== "") {
       filtered = filtered.filter(
         (book) =>
@@ -97,12 +86,6 @@ function ExplorePage() {
     navigate(`/bookDetail/`, { state: { book } });
   };
 
-  const activeFiltersCount =
-    (searchQuery ? 1 : 0) +
-    selectedGenres.length +
-    (priceRange[0] > 0 || priceRange[1] < 2000 ? 1 : 0) +
-    (minRating > 0 ? 1 : 0);
-
   return (
     <div
       className={`transition-opacity duration-700 ${
@@ -111,10 +94,8 @@ function ExplorePage() {
     >
       <NavBar />
 
-      {/* Search and Filter Section */}
       <div className="bg-white shadow-sm border-b">
         <div className="px-20 py-6">
-          {/* Search Bar and Filter Toggle */}
           <div className="flex gap-4 items-center mb-4">
             <TextField
               fullWidth
@@ -147,28 +128,10 @@ function ExplorePage() {
                 },
               }}
             />
-
-            <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-              onClick={() => setShowFilters(!showFilters)}
-              sx={{
-                minWidth: "120px",
-                position: "relative",
-              }}
-            >
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Results Summary */}
       <div className="px-20 py-4 bg-gray-50">
         <p className="text-sm text-gray-600">
           Showing {filteredBooks.length} of {books.length} books
@@ -176,7 +139,6 @@ function ExplorePage() {
         </p>
       </div>
 
-      {/* Books Grid - Your Original UI */}
       <div className="bg-zinc-200 flex flex-wrap gap-13 px-20 py-10">
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book) => (

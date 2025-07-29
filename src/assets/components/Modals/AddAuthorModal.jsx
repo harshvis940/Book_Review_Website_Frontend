@@ -3,6 +3,8 @@ import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
 import { IoIosClose } from "react-icons/io";
 import { API_BASE_URL } from "../../../static/DefaultExports";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function AddAuthorModal({ onClose, refreshAuthors }) {
   const [name, setName] = useState("");
@@ -20,7 +22,8 @@ function AddAuthorModal({ onClose, refreshAuthors }) {
     setShowImageSelector(false);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!name.trim()) {
       alert("Name is required");
       return;
@@ -30,8 +33,6 @@ function AddAuthorModal({ onClose, refreshAuthors }) {
       alert("Email is required");
       return;
     }
-
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("Please enter a valid email address");
@@ -41,14 +42,12 @@ function AddAuthorModal({ onClose, refreshAuthors }) {
     setLoading(true);
 
     try {
-      // Create FormData object
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("description", description.trim());
       formData.append("bio", bio.trim());
       formData.append("email", email.trim());
 
-      // Add image file if selected
       if (selectedImage) {
         formData.append("imageUrl", selectedImage);
       }
@@ -58,35 +57,38 @@ function AddAuthorModal({ onClose, refreshAuthors }) {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: formData, // Send as FormData, don't set Content-Type header
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        console.log(data);
+        throw new Error(data.message);
       }
-
       const result = await response.json();
 
-      // Call refresh function to update the authors list
       if (refreshAuthors) {
-        refreshAuthors();
+        setTimeout(() => {
+          refreshAuthors();
+        }, 1500);
       }
+      toast.success("Author added successfully!");
 
-      // Reset form
       setName("");
       setDescription("");
       setBio("");
       setEmail("");
       setSelectedImage(null);
       setImagePreview("");
-
-      // Close modal
-      onClose();
-
-      alert("Author added successfully!");
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error) {
-      console.error("Error adding author:", error);
-      alert("Failed to add author. Please try again.");
+      console.error("Error adding author:");
+      toast.error(error.message || "Failed to add author. Please try again.");
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } finally {
       setLoading(false);
     }
@@ -167,23 +169,20 @@ function AddAuthorModal({ onClose, refreshAuthors }) {
           {loading ? "Saving..." : "SAVE AUTHOR"}
         </button>
       </div>
-
-      {/* Image Selector Modal */}
       {showImageSelector && (
         <ImageSelectorModal
           onClose={() => setShowImageSelector(false)}
           onImageSelect={handleImageSelect}
         />
       )}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
 
-// Image Selector Modal Component
 function ImageSelectorModal({ onClose, onImageSelect }) {
   const [uploading, setUploading] = useState(false);
 
-  // Sample image URLs - these will be downloaded and converted to files
   const sampleImages = [
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
@@ -197,7 +196,6 @@ function ImageSelectorModal({ onClose, onImageSelect }) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Create preview URL
     const previewUrl = URL.createObjectURL(file);
     onImageSelect(file, previewUrl);
   };
@@ -205,11 +203,8 @@ function ImageSelectorModal({ onClose, onImageSelect }) {
   const handleSampleImageSelect = async (imageUrl) => {
     setUploading(true);
     try {
-      // Fetch the image and convert to blob/file
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-
-      // Create a file from the blob
       const fileName = `sample-image-${Date.now()}.jpg`;
       const file = new File([blob], fileName, { type: blob.type });
 
@@ -234,8 +229,6 @@ function ImageSelectorModal({ onClose, onImageSelect }) {
             <IoIosClose size={24} />
           </button>
         </div>
-
-        {/* File Upload */}
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-2">Upload from your device:</p>
           <input

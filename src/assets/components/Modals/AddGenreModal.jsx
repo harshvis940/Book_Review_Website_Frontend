@@ -3,6 +3,8 @@ import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
 import { IoIosClose } from "react-icons/io";
 import { API_BASE_URL } from "../../../static/DefaultExports";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function AddGenreModal({ onClose, refreshGenres }) {
   const [name, setName] = useState("");
@@ -28,12 +30,19 @@ function AddGenreModal({ onClose, refreshGenres }) {
 
       if (res.ok) {
         console.log("Genre added!");
-        refreshGenres(); // call parent's fetch function
-        onClose(); // close modal
+        toast.success("Genre Added Successfully", {
+          closeOnClick: true,
+        });
+        setTimeout(() => {
+          refreshGenres();
+          onClose();
+        }, 1500);
       } else {
+        toast.error("Something went wrong. Please try again.");
         console.error("Failed to add genre");
       }
     } catch (err) {
+      toast.error(err.message || "Something went wrong. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -71,6 +80,7 @@ function AddGenreModal({ onClose, refreshGenres }) {
           {loading ? "Saving..." : "SAVE GENRE"}
         </button>
       </div>
+      <ToastContainer />
     </div>
   );
 }

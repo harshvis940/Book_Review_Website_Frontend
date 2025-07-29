@@ -5,6 +5,9 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
+import { API_BASE_URL } from "../../../static/DefaultExports";
 
 function AddBookModal({ onClose, genres, authors }) {
   const fileRef = useRef(null);
@@ -66,25 +69,21 @@ function AddBookModal({ onClose, genres, authors }) {
 
     const bookData = new FormData();
 
-    // Append all form data
     bookData.append("title", formData.title);
-    bookData.append("summary", formData.summary); // Fixed: was formData.author
+    bookData.append("summary", formData.summary);
     bookData.append("isbn", formData.isbn);
     bookData.append("publicationYear", formData.publication);
     bookData.append("coverImage", image);
 
-    // Append arrays properly
     selectedGenres.forEach((id) => bookData.append("genres", id));
-    selectedAuthors.forEach((id) => bookData.append("authors", id)); // Fixed typo
+    selectedAuthors.forEach((id) => bookData.append("authors", id));
 
-    // Debug: Print FormData contents (FormData can't be logged directly)
     console.log("=== FormData Contents ===");
     for (let [key, value] of bookData.entries()) {
       console.log(key, value);
     }
     console.log("=== End FormData ===");
 
-    // Debug: Print state values
     console.log("Form Data:", formData);
     console.log("Selected Genres:", selectedGenres);
     console.log("Selected Authors:", selectedAuthors);
@@ -93,7 +92,7 @@ function AddBookModal({ onClose, genres, authors }) {
 
     try {
       setUploading(true);
-      const res = await fetch("http://localhost:8080/book/create", {
+      const res = await fetch(`${API_BASE_URL}/book/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -102,16 +101,20 @@ function AddBookModal({ onClose, genres, authors }) {
       });
 
       if (!res.ok) {
-        // const errorData = await res.json();
-        // throw new Error(errorData.message || "Failed to save book");
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to save book");
       }
 
-      // const data = await res.json();
-      // console.log("Book saved successfully:", data);
-      onClose(); // Close modal on success
+      const data = await res.json();
+      console.log("Book saved successfully:", data);
+      toast.success("Book saved successfully");
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (err) {
       console.error(err);
       setError(err.message || "Something went wrong while saving the book.");
+      toast.error(err.message);
     } finally {
       setUploading(false);
     }

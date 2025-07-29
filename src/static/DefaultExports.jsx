@@ -21,3 +21,16 @@ export const getImageSrc = (coverImageUrl) => {
   // If it's just a base64 string, add the data URL prefix
   return `data:image/jpeg;base64,${coverImageUrl}`;
 };
+
+// Generate star rating display
+export const getStarDisplay = (rating = 3) => {
+  return "⭐".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
+};
+
+// Calculate average rating
+export const calculateAverageRating = (reviews) => {
+  console.log(reviews);
+  if (reviews.length === 0) return 0;
+  const sum = reviews.ratings.reduce((acc, review) => acc + review?.ratings, 0);
+  return (sum / reviews.length).toFixed(1);
+};
