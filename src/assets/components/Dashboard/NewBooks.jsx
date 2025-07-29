@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../../static/DefaultExports";
 
 function NewBooks() {
   const [books, setBooks] = useState([]);
@@ -60,7 +61,7 @@ function NewBooks() {
 
   const fetchNewlyAddedBook = async () => {
     try {
-      const res = await fetch("http://localhost:8080/book/getNewlyAdded", {
+      const res = await fetch(`${API_BASE_URL}/book/getNewlyAdded`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

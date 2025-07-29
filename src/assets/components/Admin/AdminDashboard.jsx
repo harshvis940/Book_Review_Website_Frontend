@@ -5,6 +5,7 @@ import AddBookModal from "./AddBookModal";
 import AddGenreModal from "../Modals/AddGenreModal";
 import { API_BASE_URL } from "../../../static/DefaultExports";
 import AddAuthorModal from "../Modals/AddAuthorModal";
+import AddAdminModal from "../Modals/AddAdminModal";
 
 function AdminDashboard() {
   const [books, setBooks] = useState([]);
@@ -12,6 +13,7 @@ function AdminDashboard() {
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
   const [isAddGenreModalOpen, setIsGenreModalOpen] = useState(false);
   const [isAddAuthorModalOpen, setIsAddAuthorModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [genre, setGenre] = useState([]);
   const [authors, setAuthors] = useState([]);
 
@@ -23,7 +25,7 @@ function AdminDashboard() {
   const FetchAllBooks = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8080/getAllBooks", {
+      const res = await fetch(`${API_BASE_URL}/book/getAll`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -31,9 +33,12 @@ function AdminDashboard() {
       });
 
       if (res.ok) {
-        const data = res.json();
-        setBooks(...data);
+        console.log(res);
+        const data = await res.json();
+        console.log(data);
+        setBooks(data.data);
       }
+      console.log(books);
       setLoading(false);
     } catch (err) {
       console.log(err);
@@ -74,15 +79,22 @@ function AdminDashboard() {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Authors: ", data.data);
-        setAuthors(data.data);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
-      setLoading(false);
+
+      const response = await res.json();
+      console.log("Authors: ", response);
+
+      if (response && response.data && Array.isArray(response.data)) {
+        setAuthors(response.data);
+      } else {
+        setAuthors([]);
+      }
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -92,6 +104,7 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
+    FetchAllBooks();
     fetchAllGenre();
     fetchAllAuthors();
   }, []);
@@ -130,14 +143,24 @@ function AdminDashboard() {
             >
               Add Author
             </p>
+
+            <p
+              className="mx-15 mt-3 bg-heading3 w-fit px-5 py-3 rounded-lg hover:cursor-pointer"
+              onClick={() => setIsAdminModalOpen((prev) => !prev)}
+            >
+              Add Admin
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-5 justify-center py-10">
-            {data.map((val, key) => (
-              <BookCard index={key} />
+            {books.map((val, key) => (
+              <BookCard book={val} index={key} />
             ))}
           </div>
         </div>
+      )}
+      {isAdminModalOpen && (
+        <AddAdminModal onClose={() => setIsAdminModalOpen((prev) => !prev)} />
       )}
       {isAddBookModalOpen && (
         <AddBookModal
@@ -154,7 +177,6 @@ function AdminDashboard() {
           refreshGenres={fetchAllGenre}
         />
       )}
-
       {isAddAuthorModalOpen && (
         <AddAuthorModal
           onClose={() => setIsAddAuthorModalOpen((prev) => !prev)}

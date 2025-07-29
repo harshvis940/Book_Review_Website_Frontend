@@ -3,12 +3,16 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
+import {
+  API_BASE_URL,
+  calculateAverageRating,
+  getStarDisplay,
+} from "../../../static/DefaultExports";
 
 function Recommended() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Dummy data in case books is empty or API fails
   const dummyData = [
     {
       id: "dummy-1",
@@ -45,7 +49,7 @@ function Recommended() {
 
   const fetchRecommendedBooks = async () => {
     try {
-      const res = await fetch("http://localhost:8080/book/getRecommended", {
+      const res = await fetch(`${API_BASE_URL}/book/getRecommended`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -54,7 +58,6 @@ function Recommended() {
       if (res.ok) {
         const response = await res.json();
         console.log("Fetched recommended books:", response);
-        // Extract the data array from the response object
         setBooks(response.data || []);
       }
     } catch (err) {
@@ -100,8 +103,6 @@ function Recommended() {
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={20}
         slidesPerView={1}
-        //   navigation
-        // pagination={{ clickable: true }}
         speed={1000}
         autoplay={{ delay: 3000 }}
         loop={true}
@@ -109,7 +110,6 @@ function Recommended() {
       >
         {data.map((book, index) => (
           <SwiperSlide key={book.id}>
-            {/* <h3 className="text-lg fixed ml-10 mt-5">Recommended for you</h3> */}
             <div
               onClick={() => handleBookClick(book)}
               className="flex justify-center rounded-md overflow-hidden mt-10"
@@ -119,7 +119,6 @@ function Recommended() {
                 alt={book.title}
                 className="w-100 rounded-lg h-90 overflow-hidden object-contain rounded-lg"
                 onError={(e) => {
-                  // Fallback image if base64 fails to load
                   e.target.src =
                     "https://m.media-amazon.com/images/I/81BE7eeKzAL._UF1000,1000_QL80_.jpg";
                 }}
@@ -135,15 +134,14 @@ function Recommended() {
                     ? book.authors.join(", ")
                     : "Unknown Author"}
                 </h1>
-                <h1>
-                  {book.price
-                    ? `Price: Rs ${book.price}`
-                    : "Price Not Available"}
-                </h1>
-                <h1>
-                  {book.ratings && book.ratings.length > 0
+
+                <h1 className="my-2">
+                  {/* {book.ratings && book.ratings.length > 0
                     ? `⭐️⭐️⭐️⭐️⭐️ `
-                    : "No ratings"}
+                    : "No ratings"} */}
+
+                  {getStarDisplay(book?.averageRating)}
+                  {book?.averageRating}
                 </h1>
                 <h1>
                   {book.genres && book.genres.length > 0

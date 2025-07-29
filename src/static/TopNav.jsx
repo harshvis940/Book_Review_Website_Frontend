@@ -10,7 +10,7 @@ function TopNav() {
     { to: "/dashboard", label: "Home" },
     { to: "/explore", label: "Explore" },
     { to: "/goals", label: "Goals" },
-    { to: "/profile", label: "Profile" },
+    // { to: "/profile", label: "Profile" },
     { to: "logout", label: "Logout", isLogout: true },
   ];
 
@@ -20,10 +20,8 @@ function TopNav() {
 
   const handleLogout = (e) => {
     e.preventDefault();
-
-    // Create a custom confirmation toast
     const confirmLogout = () => {
-      toast.dismiss(); // Dismiss all toasts
+      toast.dismiss();
 
       toast.info("Logging out...", {
         position: "top-right",
@@ -31,7 +29,6 @@ function TopNav() {
       });
 
       setTimeout(() => {
-        // Clear all stored data
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userId");
@@ -49,7 +46,6 @@ function TopNav() {
       }, 1000);
     };
 
-    // Show confirmation toast with custom buttons
     toast.warn(
       <div>
         <p className="mb-2">Are you sure you want to logout?</p>

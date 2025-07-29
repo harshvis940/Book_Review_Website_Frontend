@@ -23,7 +23,6 @@ function Login() {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    // Frontend validations
     if (!email || !password) {
       toast.error("All fields are required.");
       return;
@@ -54,7 +53,7 @@ function Login() {
       toast.success("Login successful!");
       data.data.role === "ADMIN"
         ? setTimeout(() => navigate("/admin"), 1500)
-        : setTimeout(() => navigate("/dashboard"), 1500); // Navigate after toast
+        : setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
       toast.error(err.message || "Something went wrong. Please try again.");
     } finally {

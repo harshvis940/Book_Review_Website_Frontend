@@ -240,7 +240,7 @@ function Goals() {
                       </p>
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-gray-500">
-                          Added {new Date(book.addedAt).toLocaleDateString()}
+                          Added {new Date().toLocaleDateString()}
                         </p>
                         {book.isRead && (
                           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -262,7 +262,7 @@ function Goals() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="bg-white mx-20 mb-10 p-8 rounded-lg shadow-sm"
+            className="bg-white mx-20 mb-0 p-8 rounded-lg shadow-sm"
           >
             <h2 className="text-2xl font-bold mb-6">Reading Statistics</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
