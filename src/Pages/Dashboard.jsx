@@ -22,7 +22,6 @@ function Dashboard() {
     >
       <NavBar btnText={"admin"} />
       <Recommended />
-      {/* <PopularBooks /> */}
       <BestSellingBooks />
       <NewBooks />
     </div>
